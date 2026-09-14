@@ -163,6 +163,9 @@
   .stepper .dot.done{ background:var(--gold); }
   .stepper .dot.active{ background:var(--wood); width:16px; border-radius:3px; }
 
+  /* --- Intro splash : entrée dans la maison --- */
+  @keyframes featureIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
   #bottomNav{
     display:none;
     overflow-x:auto;
@@ -432,13 +435,104 @@
 
 <div id="bottomNav"></div>
 
-<div id="screen-splash" class="screen" style="text-align:center;padding:40px 8px 8px;">
-  <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(150deg, var(--gold), var(--wood));display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 10px 22px -10px rgba(60,52,40,0.55), inset 0 1px 0 rgba(255,255,255,0.25);">
-    <i class="ti ti-sofa" style="font-size:32px;color:#fff;"></i>
+<div id="screen-splash" class="screen" style="text-align:center;padding:28px 8px 8px;position:relative;overflow:hidden;">
+  <div id="houseIntroWrap">
+    <svg id="splashHouse" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" style="width:82%;max-width:280px;margin:0 auto 14px;display:block;transform-origin:55% 79%;transition:transform 0.95s cubic-bezier(.6,0,.4,1), opacity 0.6s ease 0.35s;">
+      <!-- trottoir / sol -->
+      <rect x="0" y="205" width="400" height="15" fill="var(--bg-accent)"/>
+      <rect x="0" y="200" width="400" height="6" fill="var(--surface-2)"/>
+
+      <!-- corps principal de la maison -->
+      <rect x="20" y="100" width="360" height="102" fill="var(--surface-1)"/>
+
+      <!-- volume surélevé à droite (toit plat en saillie) -->
+      <rect x="215" y="58" width="165" height="46" fill="var(--wood)"/>
+      <rect x="205" y="98" width="180" height="8" fill="var(--wood)"/>
+
+      <!-- auvent plat sur toute la largeur -->
+      <rect x="10" y="92" width="200" height="8" fill="var(--wood)"/>
+
+      <!-- bardage bois (bande horizontale sous le volume surélevé) -->
+      <rect x="255" y="70" width="80" height="30" fill="var(--gold)" opacity="0.55"/>
+      <line x1="255" y1="78" x2="335" y2="78" stroke="var(--wood)" stroke-width="1.5" opacity="0.5"/>
+      <line x1="255" y1="86" x2="335" y2="86" stroke="var(--wood)" stroke-width="1.5" opacity="0.5"/>
+      <line x1="255" y1="94" x2="335" y2="94" stroke="var(--wood)" stroke-width="1.5" opacity="0.5"/>
+
+      <!-- fenêtre en hauteur -->
+      <rect x="225" y="66" width="26" height="34" fill="var(--surface-2)" stroke="var(--wood)" stroke-width="2"/>
+
+      <!-- porte de garage (lattes horizontales) -->
+      <rect x="34" y="142" width="150" height="58" fill="var(--wood)"/>
+      <g stroke="var(--surface-1)" stroke-width="2" opacity="0.4">
+        <line x1="34" y1="152" x2="184" y2="152"/>
+        <line x1="34" y1="162" x2="184" y2="162"/>
+        <line x1="34" y1="172" x2="184" y2="172"/>
+        <line x1="34" y1="182" x2="184" y2="182"/>
+        <line x1="34" y1="192" x2="184" y2="192"/>
+      </g>
+
+      <!-- porte d'entrée (point focal du zoom) -->
+      <rect x="204" y="146" width="34" height="54" fill="var(--wood)"/>
+      <circle cx="230" cy="174" r="1.8" fill="var(--gold)"/>
+
+      <!-- mur d'accent en pierre -->
+      <rect x="252" y="146" width="90" height="54" fill="var(--wood)" opacity="0.85"/>
+      <g fill="var(--surface-1)" opacity="0.25">
+        <rect x="256" y="150" width="14" height="10"/>
+        <rect x="274" y="150" width="18" height="10"/>
+        <rect x="296" y="150" width="12" height="10"/>
+        <rect x="312" y="150" width="16" height="10"/>
+        <rect x="332" y="150" width="8" height="10"/>
+        <rect x="258" y="163" width="18" height="10"/>
+        <rect x="280" y="163" width="10" height="10"/>
+        <rect x="294" y="163" width="16" height="10"/>
+        <rect x="314" y="163" width="14" height="10"/>
+        <rect x="256" y="176" width="12" height="10"/>
+        <rect x="272" y="176" width="18" height="10"/>
+        <rect x="294" y="176" width="14" height="10"/>
+        <rect x="312" y="176" width="16" height="10"/>
+        <rect x="258" y="189" width="16" height="9"/>
+        <rect x="278" y="189" width="14" height="9"/>
+        <rect x="296" y="189" width="18" height="9"/>
+        <rect x="318" y="189" width="12" height="9"/>
+      </g>
+
+      <!-- jardinière et plante devant le mur en pierre -->
+      <rect x="252" y="196" width="90" height="6" fill="var(--sage)" opacity="0.6"/>
+      <ellipse cx="270" cy="193" rx="8" ry="5" fill="var(--sage)"/>
+      <ellipse cx="322" cy="193" rx="8" ry="5" fill="var(--sage)"/>
+
+      <!-- petite plante côté garage -->
+      <ellipse cx="196" cy="197" rx="6" ry="9" fill="var(--sage)"/>
+
+      <!-- boîte aux lettres -->
+      <rect x="360" y="172" width="10" height="8" rx="1.5" fill="var(--wood)"/>
+    </svg>
   </div>
-  <p style="font-family:'Fraunces',serif;font-size:24px;letter-spacing:0.01em;margin:0 0 8px;">Votre intérieur,<br/>réinventé</p>
-  <span style="display:inline-block;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-accent);background:var(--bg-accent);padding:5px 12px;border-radius:20px;margin-bottom:30px;">Scanner · Visualiser · Acheter</span>
-  <button onclick="goTo('home','')" style="width:100%;height:48px;">Commencer</button>
+
+  <p id="splashTitle" style="font-family:'Fraunces',serif;font-size:23px;letter-spacing:0.01em;margin:0 0 8px;transition:opacity 0.3s ease;">Votre intérieur,<br/>réinventé</p>
+  <span id="splashTag" style="display:inline-block;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-accent);background:var(--bg-accent);padding:5px 12px;border-radius:20px;margin-bottom:24px;transition:opacity 0.3s ease;">Scanner · Visualiser · Acheter</span>
+  <button id="splashStartBtn" onclick="startZoomIntro()" style="width:100%;height:48px;transition:opacity 0.3s ease;">Commencer</button>
+
+  <div id="featuresIntro" style="display:none;padding-top:8px;text-align:left;">
+    <div class="feature-row" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0;animation:featureIn 0.5s ease forwards;animation-delay:0.15s;">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-camera" style="font-size:18px;color:var(--wood);"></i></div>
+      <div><p style="margin:0;font-weight:500;font-size:14px;">Scannez votre pièce</p><p style="margin:0;font-size:12.5px;color:var(--text-secondary);">Avec la caméra de votre téléphone</p></div>
+    </div>
+    <div class="feature-row" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0;animation:featureIn 0.5s ease forwards;animation-delay:0.55s;">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-cube" style="font-size:18px;color:var(--wood);"></i></div>
+      <div><p style="margin:0;font-weight:500;font-size:14px;">Visualisez en 3D</p><p style="margin:0;font-size:12.5px;color:var(--text-secondary);">Un rendu réaliste de votre pièce</p></div>
+    </div>
+    <div class="feature-row" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0;animation:featureIn 0.5s ease forwards;animation-delay:0.95s;">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-building-store" style="font-size:18px;color:var(--wood);"></i></div>
+      <div><p style="margin:0;font-weight:500;font-size:14px;">Parcourez les boutiques</p><p style="margin:0;font-size:12.5px;color:var(--text-secondary);">Selon votre budget et votre style</p></div>
+    </div>
+    <div class="feature-row" style="display:flex;align-items:center;gap:12px;margin-bottom:22px;opacity:0;animation:featureIn 0.5s ease forwards;animation-delay:1.35s;">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-package" style="font-size:18px;color:var(--wood);"></i></div>
+      <div><p style="margin:0;font-weight:500;font-size:14px;">Suivez votre commande</p><p style="margin:0;font-size:12.5px;color:var(--text-secondary);">Jusqu'à la livraison chez vous</p></div>
+    </div>
+    <button onclick="goTo('home','')" style="width:100%;height:48px;opacity:0;animation:featureIn 0.5s ease forwards;animation-delay:1.75s;">Entrer</button>
+  </div>
 </div>
 
 <div id="screen-home" class="screen" style="display:none;">
@@ -828,6 +922,30 @@ function animateIn(id){
 const history_ = [];
 let currentScreen = 'splash';
 
+function startZoomIntro(){
+  const house = document.getElementById('splashHouse');
+  const title = document.getElementById('splashTitle');
+  const tag = document.getElementById('splashTag');
+  const btn = document.getElementById('splashStartBtn');
+  const features = document.getElementById('featuresIntro');
+  const wrap = document.getElementById('houseIntroWrap');
+
+  title.style.opacity = '0';
+  tag.style.opacity = '0';
+  btn.style.opacity = '0';
+  btn.style.pointerEvents = 'none';
+
+  requestAnimationFrame(()=>{
+    house.style.transform = 'scale(9)';
+    house.style.opacity = '0';
+  });
+
+  setTimeout(()=>{
+    wrap.style.display = 'none';
+    features.style.display = 'block';
+  }, 900);
+}
+
 const buyerHubs = {
   'buyer-profil':['ti-user','Profil'],
   'buyer-home':['ti-home-2','Home'],
@@ -1072,7 +1190,7 @@ function buyerValidateCode(){
 // fait la vraie requête à KIRI Engine. Voir kiri-relay-server/README.md.
 // Change cette URL par celle de ton serveur relais (localhost en test sur le
 // même ordinateur, ou l'URL publique/ngrok/déployée pour tester depuis un téléphone).
-const RELAY_BASE = 'http://localhost:3001';
+const RELAY_BASE = 'https://kiri-relay-serveur.onrender.com';
 
 const kiriTargets = {
   room: {
@@ -1112,13 +1230,28 @@ async function kiriStartCamera(t){
   }
 }
 
+function pickSupportedMimeType(){
+  const candidates = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+  for(const c of candidates){
+    if(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c)) return c;
+  }
+  return '';
+}
+
 function kiriToggleRecord(t){
   const cfg = kiriTargets[t];
   const st = kiriState[t];
   const btn = document.getElementById(cfg.recordBtn);
   if(!st.recorder || st.recorder.state === 'inactive'){
     st.chunks = [];
-    st.recorder = new MediaRecorder(st.stream, { mimeType:'video/webm' });
+    const mime = pickSupportedMimeType();
+    st.mime = mime || '';
+    try{
+      st.recorder = mime ? new MediaRecorder(st.stream, { mimeType: mime }) : new MediaRecorder(st.stream);
+    } catch(e){
+      st.recorder = new MediaRecorder(st.stream);
+      st.mime = '';
+    }
     st.recorder.ondataavailable = e => { if(e.data.size > 0) st.chunks.push(e.data); };
     st.recorder.onstop = () => kiriHandleRecordingStop(t);
     st.recorder.start();
@@ -1132,13 +1265,18 @@ function kiriToggleRecord(t){
 async function kiriHandleRecordingStop(t){
   const cfg = kiriTargets[t];
   const st = kiriState[t];
-  const blob = new Blob(st.chunks, { type:'video/webm' });
+  const mimeUsed = st.mime || st.recorder.mimeType || 'video/mp4';
+  const isMp4 = mimeUsed.indexOf('mp4') !== -1;
+  const blob = new Blob(st.chunks, { type: mimeUsed });
   kiriShow(t, 'uploading');
   const label = document.getElementById(cfg.statusLabel);
   label.textContent = 'Envoi de la vidéo…';
   try{
+    if(blob.size === 0){
+      throw new Error('La vidéo enregistrée est vide (0 octet) — réessaie en filmant un peu plus longtemps.');
+    }
     const form = new FormData();
-    form.append('videoFile', blob, 'scan.webm');
+    form.append('videoFile', blob, isMp4 ? 'scan.mp4' : 'scan.webm');
     form.append('isMask', cfg.isMask);
     const res = await fetch(RELAY_BASE + '/api/scan/video', {
       method:'POST',
