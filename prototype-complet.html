@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prototype - Application de décoration</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --surface-1:#F1EDE2;
+    --surface-2:#FFFFFF;
+    --text-primary:#2A2620;
+    --text-secondary:#7A7364;
+    --text-danger:#A13A20;
+    --text-success:#3F6B4A;
+    --text-accent:#7A6A45;
+    --bg-accent:#EFE7D4;
+    --border:#DDD6C6;
+    --radius:8px;
+    --sand:#EDE8DD;
+    --wood:#3C3428;
+    --gold:#A9926F;
+    --sage:#5F6F5A;
+  }
+  * { box-sizing: border-box; }
+  body{
+    background:var(--sand);
+    color:var(--text-primary);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    margin:0;
+    padding:32px 16px 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1.page-title{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:26px;
+    text-align:center;
+    margin:0 0 4px;
+  }
+  p.page-subtitle{
+    text-align:center;
+    color:var(--text-secondary);
+    font-size:14px;
+    margin:0 0 32px;
+  }
+  .section-label{
+    font-size:11px;
+    font-weight:600;
+    color:var(--text-secondary);
+    text-align:center;
+    margin:0 0 14px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .phone-wrap{
+    max-width:320px;
+    margin:0 auto;
+    background:var(--wood);
+    border-radius:32px;
+    padding:12px;
+    box-shadow:0 20px 40px -12px rgba(60,52,40,0.35);
+  }
+  #app{ max-width:100%; margin:0; background:var(--surface-2); border-radius:22px; padding:18px; min-height:420px; }
+  input, select, button{
+    font-family:inherit;
+    font-size:14px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    color:var(--text-primary);
+    padding:0 14px;
+    height:44px;
+    transition:opacity 0.15s ease, transform 0.1s ease;
+  }
+  input, select { width:100%; }
+  input:focus, select:focus{ outline:none; border-color:var(--gold); }
+  button{
+    cursor:pointer;
+    background:linear-gradient(135deg, var(--gold), var(--wood));
+    border:none;
+    color:#fff;
+    font-weight:500;
+    letter-spacing:0.01em;
+    box-shadow:0 4px 12px -4px rgba(60,52,40,0.45);
+  }
+  button.btn-secondary{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-primary);
+    font-weight:400;
+  }
+  button.btn-danger{
+    background:var(--surface-2);
+    border:1px solid var(--text-danger);
+    color:var(--text-danger);
+    font-weight:400;
+  }
+  button:hover{ opacity:0.9; }
+  button:active{ transform: scale(0.98); }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  .screen{ padding-top:2px; }
+  label{ font-size:12px; color:var(--text-secondary); font-weight:500; display:block; margin-bottom:4px; }
+  .card{ background:linear-gradient(160deg, var(--surface-1), #F3ECDD); border-radius:14px; padding:14px; box-shadow:0 1px 2px rgba(60,52,40,0.06); }
+  .empty-state{ text-align:center; padding:32px 16px; color:var(--text-secondary); }
+  .empty-state i{ font-size:26px; color:var(--gold); margin-bottom:8px; display:block; }
+
+  @keyframes screenFade{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .screen.enter{ animation:screenFade 0.28s ease; }
+  @keyframes favPop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.35); } 100%{ transform:scale(1); } }
+  i.ti-heart-filled{ animation:favPop 0.3s ease; }
+  .brand-dot{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--wood)); margin-right:8px; }
+  .brand-dot i{ width:0.55em; height:0.55em; background-color:#fff !important; }
+  .empty-state p{ font-size:13px; margin:0; }
+
+
+  .layout{ max-width:1000px; margin:0 auto; }
+  @media (min-width:680px){
+    .layout{ display:flex; gap:48px; align-items:flex-start; }
+    .layout > div{ flex:1; }
+  }
+  .moodboard{ max-width:600px; margin:0 auto; }
+  .swatches{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:8px; }
+  .swatch{ height:64px; border-radius:10px; }
+  .caption{ font-size:12px; color:var(--text-secondary); text-align:center; margin-bottom:28px; }
+  .type-card{ background:var(--surface-2); border-radius:14px; padding:20px; margin-bottom:28px; }
+  .type-card .headline{ font-family:'Fraunces',serif; font-size:22px; margin:0 0 6px; }
+  .type-card .desc{ font-size:13px; color:var(--text-secondary); margin:0; }
+  .materials{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:28px; }
+  .material{ background:var(--surface-2); border-radius:12px; padding:14px 14px 12px; font-size:13px; overflow:hidden; }
+  .material-swatch{ height:26px; border-radius:6px; margin-bottom:8px; }
+  .tags{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .tag{ background:var(--surface-2); font-size:12px; padding:6px 14px; border-radius:20px; }
+
+  /* --- Scan (pièce & produit) --- */
+  .scan-frame{
+    position:relative; overflow:hidden;
+    background:var(--surface-1);
+    border:1.5px dashed var(--gold);
+    border-radius:12px;
+    height:140px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    margin-bottom:10px;
+  }
+  .scan-frame.compact{ height:100px; }
+  .scan-frame::before, .scan-frame::after{ content:""; position:absolute; width:16px; height:16px; border:2px solid var(--gold); opacity:0.8; }
+  .scan-frame::before{ top:8px; left:8px; border-right:none; border-bottom:none; }
+  .scan-frame::after{ bottom:8px; right:8px; border-left:none; border-top:none; }
+  .scan-line{ position:absolute; left:8px; right:8px; top:12%; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); animation:scanSweep 1.15s ease-in-out infinite; }
+  @keyframes scanSweep{ 0%{ top:12%; } 50%{ top:82%; } 100%{ top:12%; } }
+  .scan-frame i{ position:relative; z-index:1; animation:pulseIcon 1.15s ease-in-out infinite; }
+  @keyframes pulseIcon{ 0%,100%{ opacity:0.55; } 50%{ opacity:1; } }
+  .scan-progress-label{ position:relative; z-index:1; font-size:11px; color:var(--text-secondary); letter-spacing:0.02em; }
+  .room-render-wrap, .object-render-wrap{ background:var(--surface-1); border-radius:12px; padding:12px 10px 10px; margin-bottom:10px; }
+  .room-render{ width:100%; height:auto; display:block; }
+  .render-caption{ font-size:11.5px; color:var(--text-secondary); text-align:center; display:flex; align-items:center; justify-content:center; gap:5px; margin:8px 0 0; }
+  .render-caption i{ color:var(--text-success); font-size:13px; }
+
+  /* --- Stepper de progression (parcours acheteur) --- */
+  .stepper{ display:flex; align-items:center; justify-content:center; gap:4px; margin:0 0 16px; }
+  .stepper .dot{ width:6px; height:6px; border-radius:50%; background:var(--border); transition:background 0.2s ease, width 0.2s ease; }
+  .stepper .dot.done{ background:var(--gold); }
+  .stepper .dot.active{ background:var(--wood); width:16px; border-radius:3px; }
+
+  #bottomNav{
+    display:none;
+    overflow-x:auto;
+    gap:4px;
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:0.5px solid var(--border);
+    -ms-overflow-style:none;
+    scrollbar-width:none;
+  }
+  #bottomNav::-webkit-scrollbar{ display:none; }
+  #bottomNav.visible{ display:flex; }
+  .nav-tab{
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    background:transparent;
+    border:none;
+    height:auto;
+    padding:6px 10px;
+    color:var(--text-secondary);
+    font-size:10px;
+    white-space:nowrap;
+  }
+  .nav-tab.active{ color:var(--wood); font-weight:500; }
+  .nav-tab.active i{ background:var(--bg-accent); }
+  .nav-tab i{ font-size:17px; padding:6px; border-radius:50%; }
+</style>
+<style>
+  i.ti{ font-style:normal; display:inline-block; }
+  i.ti::before{ font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif !important; }
+  i.ti-arrow-left::before{ content:"←" !important; }
+  i.ti-user::before{ content:"👤" !important; }
+  i.ti-home-2::before{ content:"🏠" !important; }
+  i.ti-camera::before{ content:"📷" !important; }
+  i.ti-search::before{ content:"🔍" !important; }
+  i.ti-search-off::before{ content:"🔍" !important; }
+  i.ti-package::before{ content:"📦" !important; }
+  i.ti-package-off::before{ content:"📦" !important; }
+  i.ti-box-off::before{ content:"📦" !important; }
+  i.ti-heart::before{ content:"♡" !important; }
+  i.ti-heart-filled::before{ content:"♥" !important; }
+  i.ti-message-circle::before{ content:"💬" !important; }
+  i.ti-message-off::before{ content:"💬" !important; }
+  i.ti-coin::before{ content:"🪙" !important; }
+  i.ti-building-store::before{ content:"🏬" !important; }
+  i.ti-plus::before{ content:"＋" !important; }
+  i.ti-scan::before{ content:"📷" !important; }
+  i.ti-cube::before{ content:"◇" !important; }
+  i.ti-check::before{ content:"✓" !important; }
+  i.ti-circle-check::before{ content:"✅" !important; }
+  i.ti-send::before{ content:"➤" !important; }
+  i.ti-sofa::before{ content:"🛋️" !important; }
+  i.ti-armchair::before{ content:"🪑" !important; }
+  i.ti-bed::before{ content:"🛏️" !important; }
+  i.ti-archive::before{ content:"🗄️" !important; }
+  i.ti-table::before{ content:"🍽️" !important; }
+  i.ti-bulb::before{ content:"💡" !important; }
+  i.ti-window::before{ content:"🪟" !important; }
+  i.ti-device-desktop::before{ content:"🖥️" !important; }
+  i.ti-square::before{ content:"◻" !important; }
+  i.ti-square-rounded::before{ content:"🧶" !important; }
+  i.ti-category::before{ content:"⊞" !important; }
+  i.ti-x::before{ content:"✕" !important; }
+  i.ti-shopping-cart::before{ content:"🛒" !important; }
+  i.ti-home-2{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h5v-6h4v6h5V10'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h5v-6h4v6h5V10'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-home-2::before{ content:none !important; }
+  i.ti-user{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 20c0-4 4-6 8-6s8 2 8 6'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 20c0-4 4-6 8-6s8 2 8 6'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-user::before{ content:none !important; }
+  i.ti-camera{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='13' rx='2'/%3E%3Ccircle cx='12' cy='14' r='3.5'/%3E%3Cpath d='M8 7l1.3-2.5h5.4L16 7'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='13' rx='2'/%3E%3Ccircle cx='12' cy='14' r='3.5'/%3E%3Cpath d='M8 7l1.3-2.5h5.4L16 7'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-camera::before{ content:none !important; }
+  i.ti-search{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='21' y1='21' x2='15.5' y2='15.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='21' y1='21' x2='15.5' y2='15.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-search::before{ content:none !important; }
+  i.ti-search-off{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='21' y1='21' x2='15.5' y2='15.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='21' y1='21' x2='15.5' y2='15.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-search-off::before{ content:none !important; }
+  i.ti-package{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-package::before{ content:none !important; }
+  i.ti-package-off{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-package-off::before{ content:none !important; }
+  i.ti-box-off{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5-9 5-9-5z'/%3E%3Cpath d='M3 8v9l9 5 9-5V8'/%3E%3Cline x1='12' y1='13' x2='12' y2='22'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-box-off::before{ content:none !important; }
+  i.ti-heart{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-4.3-9.5-8.8C1 8.4 2.5 4.5 6.5 4.5c2 0 3.5 1.2 5.5 3.4 2-2.2 3.5-3.4 5.5-3.4 4 0 5.5 3.9 4 7.7C19 16.7 12 21 12 21z'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-4.3-9.5-8.8C1 8.4 2.5 4.5 6.5 4.5c2 0 3.5 1.2 5.5 3.4 2-2.2 3.5-3.4 5.5-3.4 4 0 5.5 3.9 4 7.7C19 16.7 12 21 12 21z'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-heart::before{ content:none !important; }
+  i.ti-heart-filled{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-4.3-9.5-8.8C1 8.4 2.5 4.5 6.5 4.5c2 0 3.5 1.2 5.5 3.4 2-2.2 3.5-3.4 5.5-3.4 4 0 5.5 3.9 4 7.7C19 16.7 12 21 12 21z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-4.3-9.5-8.8C1 8.4 2.5 4.5 6.5 4.5c2 0 3.5 1.2 5.5 3.4 2-2.2 3.5-3.4 5.5-3.4 4 0 5.5 3.9 4 7.7C19 16.7 12 21 12 21z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-heart-filled::before{ content:none !important; }
+  i.ti-message-circle{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v10H9l-4 4V5z'/%3E%3Cline x1='8' y1='9' x2='16' y2='9'/%3E%3Cline x1='8' y1='12.5' x2='13' y2='12.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v10H9l-4 4V5z'/%3E%3Cline x1='8' y1='9' x2='16' y2='9'/%3E%3Cline x1='8' y1='12.5' x2='13' y2='12.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-message-circle::before{ content:none !important; }
+  i.ti-message-off{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v10H9l-4 4V5z'/%3E%3Cline x1='8' y1='9' x2='16' y2='9'/%3E%3Cline x1='8' y1='12.5' x2='13' y2='12.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v10H9l-4 4V5z'/%3E%3Cline x1='8' y1='9' x2='16' y2='9'/%3E%3Cline x1='8' y1='12.5' x2='13' y2='12.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-message-off::before{ content:none !important; }
+  i.ti-coin{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-coin::before{ content:none !important; }
+  i.ti-building-store{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9l1-5h14l1 5'/%3E%3Cpath d='M4 9v11h16V9'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9l1-5h14l1 5'/%3E%3Cpath d='M4 9v11h16V9'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-building-store::before{ content:none !important; }
+  i.ti-scan{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-scan::before{ content:none !important; }
+  i.ti-circle-check{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.3l2.6 2.6L16 9'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.3l2.6 2.6L16 9'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-circle-check::before{ content:none !important; }
+  i.ti-sofa{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4'/%3E%3Cpath d='M3 12h18v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z'/%3E%3Cline x1='5' y1='18' x2='5' y2='20'/%3E%3Cline x1='19' y1='18' x2='19' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4'/%3E%3Cpath d='M3 12h18v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z'/%3E%3Cline x1='5' y1='18' x2='5' y2='20'/%3E%3Cline x1='19' y1='18' x2='19' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-sofa::before{ content:none !important; }
+  i.ti-armchair{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4'/%3E%3Cpath d='M4 11h2v6H4zM18 11h2v6h-2z'/%3E%3Cpath d='M6 11h12v6a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-6z'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4'/%3E%3Cpath d='M4 11h2v6H4zM18 11h2v6h-2z'/%3E%3Cpath d='M6 11h12v6a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-6z'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-armchair::before{ content:none !important; }
+  i.ti-bed{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='10' width='7' height='4' rx='1'/%3E%3Cpath d='M3 20v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6'/%3E%3Cline x1='3' y1='17' x2='21' y2='17'/%3E%3Cline x1='3' y1='20' x2='3' y2='18'/%3E%3Cline x1='21' y1='20' x2='21' y2='18'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='10' width='7' height='4' rx='1'/%3E%3Cpath d='M3 20v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6'/%3E%3Cline x1='3' y1='17' x2='21' y2='17'/%3E%3Cline x1='3' y1='20' x2='3' y2='18'/%3E%3Cline x1='21' y1='20' x2='21' y2='18'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-bed::before{ content:none !important; }
+  i.ti-archive{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='18' rx='1'/%3E%3Cline x1='12' y1='3' x2='12' y2='21'/%3E%3Cline x1='9.5' y1='12' x2='9.5' y2='13.2'/%3E%3Cline x1='14.5' y1='12' x2='14.5' y2='13.2'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='18' rx='1'/%3E%3Cline x1='12' y1='3' x2='12' y2='21'/%3E%3Cline x1='9.5' y1='12' x2='9.5' y2='13.2'/%3E%3Cline x1='14.5' y1='12' x2='14.5' y2='13.2'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-archive::before{ content:none !important; }
+  i.ti-table{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l1.5-3h15L21 8'/%3E%3Cline x1='3' y1='8' x2='21' y2='8'/%3E%3Cline x1='5' y1='8' x2='5' y2='20'/%3E%3Cline x1='19' y1='8' x2='19' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l1.5-3h15L21 8'/%3E%3Cline x1='3' y1='8' x2='21' y2='8'/%3E%3Cline x1='5' y1='8' x2='5' y2='20'/%3E%3Cline x1='19' y1='8' x2='19' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-table::before{ content:none !important; }
+  i.ti-bulb{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='9' r='5'/%3E%3Cline x1='9.5' y1='16' x2='14.5' y2='16'/%3E%3Cline x1='10.2' y1='19' x2='13.8' y2='19'/%3E%3Cline x1='12' y1='13.5' x2='12' y2='16'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='9' r='5'/%3E%3Cline x1='9.5' y1='16' x2='14.5' y2='16'/%3E%3Cline x1='10.2' y1='19' x2='13.8' y2='19'/%3E%3Cline x1='12' y1='13.5' x2='12' y2='16'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-bulb::before{ content:none !important; }
+  i.ti-window{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='1'/%3E%3Cline x1='12' y1='4' x2='12' y2='20'/%3E%3Cline x1='4' y1='12' x2='20' y2='12'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='1'/%3E%3Cline x1='12' y1='4' x2='12' y2='20'/%3E%3Cline x1='4' y1='12' x2='20' y2='12'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-window::before{ content:none !important; }
+  i.ti-device-desktop{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='12' rx='1'/%3E%3Cline x1='8' y1='20' x2='16' y2='20'/%3E%3Cline x1='12' y1='16' x2='12' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='12' rx='1'/%3E%3Cline x1='8' y1='20' x2='16' y2='20'/%3E%3Cline x1='12' y1='16' x2='12' y2='20'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-device-desktop::before{ content:none !important; }
+  i.ti-square-rounded{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='6' width='16' height='12' rx='2'/%3E%3Crect x='7' y='9' width='10' height='6' rx='1'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='6' width='16' height='12' rx='2'/%3E%3Crect x='7' y='9' width='10' height='6' rx='1'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-square-rounded::before{ content:none !important; }
+  i.ti-shopping-cart{
+    display:inline-block; width:1em; height:1em; background-color:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='20' r='1.2'/%3E%3Ccircle cx='17' cy='20' r='1.2'/%3E%3Cpath d='M3 4h2l2.4 11h10.4L20 8H6.2'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='20' r='1.2'/%3E%3Ccircle cx='17' cy='20' r='1.2'/%3E%3Cpath d='M3 4h2l2.4 11h10.4L20 8H6.2'/%3E%3C/svg%3E") no-repeat center / contain;
+    vertical-align:middle;
+  }
+  i.ti-shopping-cart::before{ content:none !important; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Votre intérieur, réinventé</h1>
+<p class="page-subtitle">Prototype complet — parcours acheteur et boutique</p>
+
+<div class="layout">
+<div>
+<p class="section-label">Simulation de l'application</p>
+<div class="phone-wrap">
+<div id="app">
+
+<div id="topbar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:28px;">
+  <button id="backBtn" onclick="goBack()" style="display:none;width:32px;height:32px;padding:0;border-radius:var(--radius);" aria-label="Retour"><i class="ti ti-arrow-left" style="font-size:16px;"></i></button>
+  <span id="screenTitle" style="font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--wood);"></span>
+</div>
+
+<div id="bottomNav"></div>
+
+<div id="screen-splash" class="screen" style="text-align:center;padding:40px 8px 8px;">
+  <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(150deg, var(--gold), var(--wood));display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 10px 22px -10px rgba(60,52,40,0.55), inset 0 1px 0 rgba(255,255,255,0.25);">
+    <i class="ti ti-sofa" style="font-size:32px;color:#fff;"></i>
+  </div>
+  <p style="font-family:'Fraunces',serif;font-size:24px;letter-spacing:0.01em;margin:0 0 8px;">Votre intérieur,<br/>réinventé</p>
+  <span style="display:inline-block;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-accent);background:var(--bg-accent);padding:5px 12px;border-radius:20px;margin-bottom:30px;">Scanner · Visualiser · Acheter</span>
+  <button onclick="goTo('home','')" style="width:100%;height:48px;">Commencer</button>
+</div>
+
+<div id="screen-home" class="screen" style="display:none;">
+  <p style="font-size:14px;color:var(--text-secondary);margin:0 0 1.25rem;">Choisissez votre profil pour continuer.</p>
+  <button onclick="goTo('buyer-signup','Inscription acheteur')" style="width:100%;height:56px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-user" style="font-size:18px;"></i>Je suis acheteur</button>
+  <button onclick="goTo('shop-signup','Inscription boutique')" style="width:100%;height:56px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-building-store" style="font-size:18px;"></i>Je suis une boutique</button>
+</div>
+
+<div id="screen-buyer-signup" class="screen" style="display:none;">
+  <label>Nom</label>
+  <input id="b-nom" style="margin:4px 0 10px;" placeholder="Aminata Diop" />
+  <label>Email</label>
+  <input id="b-email" style="margin:4px 0 10px;" placeholder="aminata@email.com" />
+  <label>Numéro de téléphone</label>
+  <input id="b-tel" style="margin:4px 0 10px;" placeholder="77 000 00 00" />
+  <p id="b-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="buyerSendCode()" style="width:100%;height:44px;">Recevoir mon code</button>
+</div>
+
+<div id="screen-buyer-code" class="screen" style="display:none;">
+  <div style="background:var(--surface-1);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;">
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 4px;">Code envoyé par SMS (démo)</p>
+    <p style="font-size:22px;font-weight:600;margin:0;letter-spacing:2px;" id="demo-code">0000</p>
+  </div>
+  <label>Entrer le code</label>
+  <input id="b-code" style="margin:4px 0 10px;" placeholder="0000" />
+  <p id="code-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="buyerValidateCode()" style="width:100%;height:44px;">Valider</button>
+</div>
+
+<div id="screen-buyer-project" class="screen" style="display:none;">
+  <div class="stepper"><div class="dot active"></div><div class="dot"></div></div>
+  <label>Nom du projet</label>
+  <input id="p-nom" style="margin:4px 0 10px;" placeholder="Salon appartement" />
+  <label>Surface de la pièce (m², optionnel)</label>
+  <input id="p-m2" type="number" style="margin:4px 0 10px;" placeholder="18" />
+
+  <button id="scanBtn" onclick="kiriStartCamera('room')" style="width:100%;height:44px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-camera" style="font-size:16px;"></i>Scanner ma pièce</button>
+
+  <div id="scanCamera" style="display:none;margin-bottom:10px;">
+    <video id="scanVideoPreview" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:170px;object-fit:cover;display:block;"></video>
+    <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Filmez lentement en tournant dans la pièce (~20-30 s), puis arrêtez.</p>
+    <button id="scanRecordBtn" onclick="kiriToggleRecord('room')" style="width:100%;height:40px;">● Démarrer l'enregistrement</button>
+  </div>
+
+  <div id="scanUploading" class="scan-frame" style="display:none;">
+    <div class="scan-line"></div>
+    <i class="ti ti-cube" style="font-size:26px;color:var(--gold);"></i>
+    <span class="scan-progress-label" id="scanStatusLabel">Envoi à KIRI Engine…</span>
+  </div>
+
+  <div id="scanPreview" class="room-render-wrap" style="display:none;">
+    <p class="render-caption" style="justify-content:flex-start;"><i class="ti ti-circle-check"></i>Modèle 3D généré par KIRI Engine</p>
+    <a id="scanDownloadLink" href="#" target="_blank" rel="noopener" class="btn-secondary" style="display:block;text-align:center;height:34px;line-height:34px;border-radius:10px;text-decoration:none;font-size:12.5px;margin-top:8px;">Télécharger le modèle (.zip)</a>
+    <button class="btn-secondary" onclick="kiriReset('room')" style="width:100%;height:32px;font-size:11.5px;margin-top:8px;">Rescanner</button>
+  </div>
+
+  <div id="scanError" style="display:none;background:var(--surface-2);border:1px solid var(--text-danger);border-radius:12px;padding:10px;margin-bottom:10px;">
+    <p style="font-size:12px;color:var(--text-danger);margin:0 0 8px;" id="scanErrorMsg"></p>
+    <button class="btn-secondary" onclick="kiriReset('room')" style="width:100%;height:32px;font-size:11.5px;">Réessayer</button>
+  </div>
+
+  <p id="proj-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="buyerToBudget()" style="width:100%;height:44px;margin-bottom:8px;">Définir un budget (optionnel)</button>
+  <button class="btn-secondary" onclick="skipBudgetFromProject()" style="width:100%;height:40px;">Passer directement aux produits</button>
+</div>
+
+<div id="screen-buyer-budget" class="screen" style="display:none;">
+  <div class="stepper"><div class="dot done"></div><div class="dot active"></div></div>
+  <label>Budget total (FCFA, optionnel)</label>
+  <input id="budget-total" type="number" style="margin:4px 0 14px;" placeholder="500000" oninput="updateBudgetSummary()" />
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px;">Indiquez à titre indicatif combien vous voulez consacrer à chaque catégorie — vous pourrez toujours dépenser librement d'une catégorie à l'autre.</p>
+  <div id="budget-split"></div>
+  <p id="budget-err" style="font-size:13px;color:var(--text-danger);display:none;margin:8px 0;"></p>
+  <button onclick="buyerToCatalog()" style="width:100%;height:44px;margin-top:8px;">Voir le catalogue</button>
+  <button class="btn-secondary" onclick="skipBudget()" style="width:100%;height:40px;margin-top:8px;">Passer cette étape</button>
+</div>
+
+<div id="screen-buyer-catalog" class="screen" style="display:none;">
+  <div style="background:var(--bg-accent);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;display:flex;justify-content:space-between;">
+    <span style="font-size:13px;color:var(--text-accent);">Budget total restant</span>
+    <span style="font-size:13px;font-weight:600;" id="cat-remaining">0 FCFA</span>
+  </div>
+  <div id="catalog-list"></div>
+  <button onclick="goTo('buyer-cart','Mon panier')" style="width:100%;height:44px;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-shopping-cart" style="font-size:16px;"></i>Voir mon panier (<span id="cart-count">0</span>)</button>
+</div>
+
+<div id="screen-buyer-cart" class="screen" style="display:none;">
+  <div id="cart-list"></div>
+  <div style="display:flex;justify-content:space-between;margin:14px 0;font-size:15px;font-weight:600;">
+    <span>Total</span><span id="cart-total">0 FCFA</span>
+  </div>
+  <p id="cart-budget-note" style="font-size:13px;margin:0 0 10px;display:none;"></p>
+  <p id="cart-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="goToPayment()" style="width:100%;height:44px;">Passer commande</button>
+</div>
+
+<div id="screen-buyer-payment" class="screen" style="display:none;">
+  <div id="pay-form">
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px;">Moyen de paiement</p>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;height:auto;"><input type="radio" name="pm" value="Wave" checked style="width:auto;height:auto;" />Wave</label>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;height:auto;"><input type="radio" name="pm" value="Orange Money" style="width:auto;height:auto;" />Orange Money</label>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:14px;height:auto;"><input type="radio" name="pm" value="Yas" style="width:auto;height:auto;" />Yas</label>
+    <button onclick="doPay()" style="width:100%;height:44px;">Payer <span id="pay-amount"></span></button>
+  </div>
+  <div id="pay-confirm" style="display:none;">
+    <div style="background:var(--surface-1);border-radius:12px;padding:1rem;margin-bottom:14px;">
+      <p style="font-size:14px;margin:0;"><i class="ti ti-check" style="color:var(--text-success);margin-right:6px;"></i>Paiement reçu, commission plateforme prélevée, le reste sera transmis à la ou aux boutiques.</p>
+    </div>
+    <button onclick="finalizeOrder()" style="width:100%;height:44px;">Confirmer la commande</button>
+  </div>
+  <div id="pay-done" style="display:none;text-align:center;padding:1rem 0;">
+    <i class="ti ti-circle-check" style="font-size:36px;color:var(--text-success);"></i>
+    <p style="font-size:15px;font-weight:600;margin:10px 0 4px;">Commande envoyée</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;" id="done-msg">En attente d'acceptation par la ou les boutiques. Le délai de livraison sera confirmé une fois la commande acceptée.</p>
+    <button onclick="resetApp()" style="width:100%;height:44px;">Retour à l'accueil</button>
+  </div>
+</div>
+
+<div id="screen-shop-signup" class="screen" style="display:none;">
+  <label>Nom</label>
+  <input id="s-nom" style="margin:4px 0 10px;" placeholder="Fatou Ndiaye" />
+  <label>Téléphone</label>
+  <input id="s-tel" style="margin:4px 0 10px;" placeholder="78 000 00 00" />
+  <label>Gmail</label>
+  <input id="s-mail" style="margin:4px 0 10px;" placeholder="fatou@gmail.com" />
+  <p id="s-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="shopSignup()" style="width:100%;height:44px;">Continuer</button>
+</div>
+
+<div id="screen-shop-payment" class="screen" style="display:none;">
+  <div style="background:var(--surface-1);border-radius:var(--radius);padding:1rem;margin-bottom:14px;">
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 4px;">Abonnement catalogue annuel</p>
+    <p style="font-size:22px;font-weight:600;margin:0;">20 000 FCFA</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:6px 0 0;">Modélisation 3D gratuite jusqu'à 100 articles.</p>
+  </div>
+  <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;height:auto;"><input type="radio" name="spm" value="Wave" checked style="width:auto;height:auto;" />Wave</label>
+  <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;height:auto;"><input type="radio" name="spm" value="Orange Money" style="width:auto;height:auto;" />Orange Money</label>
+  <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:14px;height:auto;"><input type="radio" name="spm" value="Yas" style="width:auto;height:auto;" />Yas</label>
+  <button onclick="goTo('shop-setup','Configurer ma boutique')" style="width:100%;height:44px;">Payer et continuer</button>
+</div>
+
+<div id="screen-shop-setup" class="screen" style="display:none;">
+  <label>Nom de la boutique</label>
+  <input id="shop-nom" style="margin:4px 0 10px;" placeholder="Deco Prestige" />
+  <label>Secteurs / domaines de vente (plusieurs possibles)</label>
+  <div style="margin:4px 0 10px;display:flex;flex-direction:column;gap:6px;">
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);height:auto;font-size:14px;color:var(--text-primary);"><input type="checkbox" class="shop-secteur-check" value="Mobilier" style="width:auto;height:auto;" />Mobilier</label>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);height:auto;font-size:14px;color:var(--text-primary);"><input type="checkbox" class="shop-secteur-check" value="Luminaires" style="width:auto;height:auto;" />Luminaires</label>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);height:auto;font-size:14px;color:var(--text-primary);"><input type="checkbox" class="shop-secteur-check" value="Textile et tapis" style="width:auto;height:auto;" />Textile et tapis</label>
+    <label style="display:flex;align-items:center;gap:8px;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);height:auto;font-size:14px;color:var(--text-primary);"><input type="checkbox" class="shop-secteur-check" value="Décoration murale" style="width:auto;height:auto;" />Décoration murale</label>
+  </div>
+  <label>Boutique simulée (démo)</label>
+  <select id="shop-demo-select" style="margin:4px 0 10px;">
+    <option value="Sénéco">Sénéco</option><option value="Terranga">Terranga</option>
+  </select>
+  <p id="shop-setup-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+  <button onclick="shopToCatalog()" style="width:100%;height:44px;">Ouvrir mon catalogue</button>
+</div>
+
+<div id="screen-shop-catalog" class="screen" style="display:none;">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;">
+    <div class="card"><p style="font-size:11px;color:var(--text-secondary);margin:0 0 4px;">Interactions clients</p><p style="font-size:15px;font-weight:600;margin:0;" id="shop-interactions">0</p></div>
+    <div class="card"><p style="font-size:11px;color:var(--text-secondary);margin:0 0 4px;">Article phare</p><p style="font-size:13px;font-weight:600;margin:0;" id="shop-top-article">—</p></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+    <span style="font-size:13px;color:var(--text-secondary);">Articles au catalogue</span>
+    <span style="font-size:13px;font-weight:600;" id="shop-count">0 / 100</span>
+  </div>
+  <div style="background:var(--surface-1);border-radius:12px;padding:1rem;margin-bottom:14px;">
+    <input id="a-nom" style="margin-bottom:8px;" placeholder="Nom de l'article" />
+    <input id="a-dim" style="margin-bottom:8px;" placeholder="Dimension (ex: 180x90cm)" />
+    <input id="a-prix" type="number" style="margin-bottom:8px;" placeholder="Prix (FCFA)" />
+    <input id="a-delai" type="number" style="margin-bottom:8px;" placeholder="Délai de livraison (jours)" />
+    <button id="articleScanBtn" onclick="kiriStartCamera('article')" style="width:100%;height:40px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-scan" style="font-size:16px;"></i>Scanner le produit</button>
+    <div id="articleCamera" style="display:none;margin-bottom:8px;">
+      <video id="articleVideoPreview" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:150px;object-fit:cover;display:block;"></video>
+      <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Filmez l'article sous tous les angles (~15-20 s).</p>
+      <button id="articleRecordBtn" onclick="kiriToggleRecord('article')" style="width:100%;height:36px;">● Démarrer l'enregistrement</button>
+    </div>
+    <div id="articleScanning" class="scan-frame compact" style="display:none;margin-bottom:8px;">
+      <div class="scan-line"></div>
+      <i class="ti ti-cube" style="font-size:22px;color:var(--gold);"></i>
+      <span class="scan-progress-label" id="articleScanLabel">Modélisation 3D…</span>
+    </div>
+    <div id="articleScanPreview" class="object-render-wrap" style="display:none;margin-bottom:8px;padding:10px;">
+      <p class="render-caption" style="margin:0 0 8px;justify-content:flex-start;"><i class="ti ti-circle-check"></i>Modèle 3D généré par KIRI Engine</p>
+      <a id="articleDownloadLink" href="#" target="_blank" rel="noopener" class="btn-secondary" style="display:block;text-align:center;height:30px;line-height:30px;border-radius:10px;text-decoration:none;font-size:12px;">Télécharger le modèle (.zip)</a>
+    </div>
+    <div id="articleScanError" style="display:none;background:var(--surface-2);border:1px solid var(--text-danger);border-radius:12px;padding:10px;margin-bottom:8px;">
+      <p style="font-size:12px;color:var(--text-danger);margin:0 0 8px;" id="articleScanErrorMsg"></p>
+      <button class="btn-secondary" onclick="kiriReset('article')" style="width:100%;height:30px;font-size:11px;">Réessayer</button>
+    </div>
+    <p id="art-err" style="font-size:13px;color:var(--text-danger);display:none;margin:0 0 8px;"></p>
+    <button onclick="addArticle()" style="width:100%;height:40px;">Ajouter au catalogue</button>
+  </div>
+  <div id="shop-articles" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+  <p style="font-size:12px;color:var(--text-secondary);margin:14px 0 8px;">Vous pouvez ajouter des articles ici quand vous voulez, sans minimum imposé.</p>
+  <button class="btn-secondary" onclick="finishCatalogForNow()" style="width:100%;height:40px;">Terminer pour l'instant</button>
+  <p id="shop-finish-msg" style="font-size:13px;color:var(--text-success);display:none;margin:8px 0 0;"></p>
+  <button onclick="goTo('shop-orders','Commandes reçues')" style="width:100%;height:40px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-package" style="font-size:16px;"></i>Voir mes commandes reçues</button>
+</div>
+
+<div id="screen-shop-orders" class="screen" style="display:none;">
+  <div id="shop-orders-list"></div>
+</div>
+
+<div id="screen-shop-order-detail" class="screen" style="display:none;">
+  <div id="order-detail-body"></div>
+</div>
+
+<div id="screen-buyer-orders" class="screen" style="display:none;">
+  <div id="buyer-orders-list"></div>
+</div>
+
+<div id="screen-buyer-profil" class="screen" style="display:none;">
+  <div class="card" style="padding:14px;">
+    <p style="font-size:14px;font-weight:600;margin:0 0 4px;" id="bp-nom">—</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:0;" id="bp-email">—</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;" id="bp-tel">—</p>
+  </div>
+</div>
+
+<div id="screen-buyer-home" class="screen" style="display:none;">
+  <div style="display:flex;align-items:center;margin-bottom:4px;"><span class="brand-dot"><i class="ti ti-sofa"></i></span><p style="font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin:0;" id="bh-greeting">Bonjour</p></div>
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">Prêt à imaginer votre prochaine pièce ?</p>
+  <button onclick="goTo('buyer-project','Nouveau projet')" style="width:100%;height:48px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="ti ti-camera" style="font-size:16px;"></i>Démarrer un nouveau projet</button>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+    <div class="card" style="display:flex;flex-direction:column;gap:6px;">
+      <i class="ti ti-package" style="font-size:18px;color:var(--gold);"></i>
+      <p style="font-size:11px;color:var(--text-secondary);margin:0;">Commandes en cours</p>
+      <p style="font-size:18px;font-weight:600;margin:0;" id="bh-orders-count">0</p>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px;">
+      <i class="ti ti-heart" style="font-size:18px;color:var(--gold);"></i>
+      <p style="font-size:11px;color:var(--text-secondary);margin:0;">Articles favoris</p>
+      <p style="font-size:18px;font-weight:600;margin:0;" id="bh-fav-count">0</p>
+    </div>
+  </div>
+</div>
+
+<div id="screen-buyer-search" class="screen" style="display:none;">
+  <input id="search-shop" placeholder="Rechercher une boutique..." style="margin-bottom:8px;" oninput="renderSearch()" />
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <button class="btn-secondary" onclick="goTo('category-picker','Catégories')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;"><i class="ti ti-category" style="font-size:15px;"></i><span id="search-cat-label">Catégorie</span></button>
+    <input id="search-price-max" type="number" placeholder="Prix max" oninput="renderSearch()" style="flex:1;" />
+  </div>
+  <div id="search-results" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+</div>
+
+<div id="screen-category-picker" class="screen" style="display:none;">
+  <div id="category-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
+</div>
+
+<div id="screen-buyer-favoris" class="screen" style="display:none;">
+  <div id="favoris-results" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+</div>
+
+<div id="screen-buyer-messages" class="screen" style="display:none;">
+  <div id="buyer-threads-list"></div>
+</div>
+
+<div id="screen-shop-messages" class="screen" style="display:none;">
+  <div id="shop-threads-list"></div>
+</div>
+
+<div id="screen-message-thread" class="screen" style="display:none;">
+  <div id="thread-messages" style="margin-bottom:10px;"></div>
+  <div style="display:flex;gap:8px;">
+    <input id="thread-input" placeholder="Écrire un message..." style="flex:1;" />
+    <button onclick="sendThreadMessage()" style="width:44px;padding:0;"><i class="ti ti-send"></i></button>
+  </div>
+</div>
+
+<div id="screen-shop-gains" class="screen" style="display:none;">
+  <div class="card" style="margin-bottom:10px;">
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 4px;">Gains totaux (net après commission)</p>
+    <p style="font-size:22px;font-weight:600;margin:0;" id="gains-total">0 FCFA</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+    <div class="card"><p style="font-size:12px;color:var(--text-secondary);margin:0 0 4px;">Commandes livrées</p><p style="font-size:16px;font-weight:600;margin:0;" id="gains-livrees">0</p></div>
+    <div class="card"><p style="font-size:12px;color:var(--text-secondary);margin:0 0 4px;">En attente</p><p style="font-size:16px;font-weight:600;margin:0;" id="gains-attente">0</p></div>
+  </div>
+</div>
+
+<div id="screen-shop-home" class="screen" style="display:none;">
+  <div style="display:flex;align-items:center;margin-bottom:4px;"><span class="brand-dot"><i class="ti ti-sofa"></i></span><p style="font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin:0;" id="sh-greeting">Bonjour</p></div>
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">Voici l'état de votre boutique aujourd'hui.</p>
+  <button onclick="goTo('shop-catalog','Mon catalogue')" style="width:100%;height:52px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;"><i class="ti ti-plus" style="font-size:18px;"></i>Gérer mon catalogue</button>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+    <div class="card" style="display:flex;flex-direction:column;gap:6px;">
+      <i class="ti ti-coin" style="font-size:18px;color:var(--gold);"></i>
+      <p style="font-size:11px;color:var(--text-secondary);margin:0;">Gains totaux</p>
+      <p style="font-size:16px;font-weight:600;margin:0;" id="sh-gains">0 FCFA</p>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px;">
+      <i class="ti ti-package" style="font-size:18px;color:var(--gold);"></i>
+      <p style="font-size:11px;color:var(--text-secondary);margin:0;">Commandes reçues</p>
+      <p style="font-size:18px;font-weight:600;margin:0;" id="sh-orders-count">0</p>
+    </div>
+  </div>
+</div>
+
+<div id="screen-shop-profil" class="screen" style="display:none;">
+  <div class="card" style="padding:14px;">
+    <p style="font-size:14px;font-weight:600;margin:0 0 4px;" id="sp-nom">—</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:0;" id="sp-secteurs">—</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;" id="sp-boutique-demo">—</p>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="moodboard">
+  <p class="section-label">Choisissez votre mood</p>
+  <div class="swatches" id="mood-swatches" style="cursor:pointer;"></div>
+  <p class="caption">Touchez une pastille pour changer les couleurs de l'appli, en direct</p>
+
+  <p class="section-label">Typographie</p>
+  <div class="type-card">
+    <p class="headline">Votre intérieur, réinventé</p>
+    <p class="desc">Titres élégants en serif (Fraunces) · interface sobre en sans-serif (Inter)</p>
+  </div>
+
+  <p class="section-label">Matières</p>
+  <div class="materials">
+    <div class="material"><div class="material-swatch" style="background:linear-gradient(100deg,var(--wood),#5a4c3a);"></div>Bois massif</div>
+    <div class="material"><div class="material-swatch" style="background:linear-gradient(100deg,var(--sand),var(--gold));"></div>Lin, velours</div>
+    <div class="material"><div class="material-swatch" style="background:linear-gradient(100deg,#e9e4d8,var(--text-accent));"></div>Marbre, laiton</div>
+    <div class="material"><div class="material-swatch" style="background:linear-gradient(100deg,var(--gold),#f6e9c9);"></div>Lumière chaude</div>
+  </div>
+
+  <p class="section-label">Ton de marque</p>
+  <div class="tags">
+    <span class="tag">Épuré</span>
+    <span class="tag">Authentique</span>
+    <span class="tag">Exclusif</span>
+    <span class="tag">Chaleureux</span>
+    <span class="tag">Sur-mesure</span>
+  </div>
+</div>
+</div>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('fr-FR') + ' FCFA';
+
+const moods = {
+  sable: {label:'Sable', sand:'#EDE8DD', wood:'#3C3428', gold:'#A9926F', sage:'#5F6F5A', surface1:'#F1EDE2', surface2:'#FFFFFF', text1:'#2A2620', text2:'#7A7364', border:'#DDD6C6'},
+  sauge: {label:'Sauge', sand:'#E7EDE4', wood:'#2F3B2C', gold:'#8FA37E', sage:'#4A5D42', surface1:'#EEF2EA', surface2:'#FFFFFF', text1:'#232B20', text2:'#6E7A68', border:'#D3DECC'},
+  terracotta: {label:'Terracotta', sand:'#F3E4D8', wood:'#6B3A2A', gold:'#C97B4A', sage:'#8A6A4A', surface1:'#F7ECE2', surface2:'#FFFFFF', text1:'#3A241B', text2:'#8A7062', border:'#E6D2C2'},
+  nuit: {label:'Nuit', sand:'#211E19', wood:'#0F0D0A', gold:'#C9A96A', sage:'#5C7A6A', surface1:'#2C2822', surface2:'#363228', text1:'#F0EAE0', text2:'#B0A897', border:'#4A453B'}
+};
+function applyMood(key){
+  const m = moods[key];
+  const root = document.documentElement.style;
+  root.setProperty('--sand', m.sand);
+  root.setProperty('--wood', m.wood);
+  root.setProperty('--gold', m.gold);
+  root.setProperty('--sage', m.sage);
+  root.setProperty('--surface-1', m.surface1);
+  root.setProperty('--surface-2', m.surface2);
+  root.setProperty('--text-primary', m.text1);
+  root.setProperty('--text-secondary', m.text2);
+  root.setProperty('--border', m.border);
+  root.setProperty('--bg-accent', m.surface1);
+  root.setProperty('--text-accent', m.gold);
+  renderMoodSwatches(key);
+}
+function renderMoodSwatches(active){
+  document.getElementById('mood-swatches').innerHTML = Object.keys(moods).map(key=>{
+    const m = moods[key];
+    const isActive = key===active;
+    return '<div onclick="applyMood(\''+key+'\')" style="cursor:pointer;text-align:center;">'+
+      '<div class="swatch" style="background:linear-gradient(135deg,'+m.gold+' 50%,'+m.wood+' 50%);'+(isActive?'outline:2px solid '+m.gold+';outline-offset:2px;':'')+'"></div>'+
+      '<p style="font-size:10px;color:var(--text-secondary);margin:4px 0 0;">'+m.label+'</p></div>';
+  }).join('');
+}
+function animateIn(id){
+  const el = document.getElementById('screen-'+id);
+  if(!el) return;
+  el.classList.remove('enter');
+  void el.offsetWidth;
+  el.classList.add('enter');
+}
+const history_ = [];
+let currentScreen = 'splash';
+
+const buyerHubs = {
+  'buyer-profil':['ti-user','Profil'],
+  'buyer-home':['ti-home-2','Home'],
+  'buyer-project':['ti-camera','Projet'],
+  'buyer-search':['ti-search','Boutiques'],
+  'buyer-orders':['ti-package','Commandes'],
+  'buyer-favoris':['ti-heart','Favoris'],
+  'buyer-messages':['ti-message-circle','Messages']
+};
+const shopHubs = {
+  'shop-profil':['ti-user','Profil'],
+  'shop-home':['ti-home-2','Home'],
+  'shop-gains':['ti-coin','Gains'],
+  'shop-catalog':['ti-building-store','Boutique'],
+  'shop-orders':['ti-package','Commande'],
+  'shop-messages':['ti-message-circle','Interaction']
+};
+function renderNav(hubs, activeId){
+  const nav = document.getElementById('bottomNav');
+  nav.innerHTML = Object.keys(hubs).map(id=>{
+    const [icon,label] = hubs[id];
+    return '<button class="nav-tab'+(id===activeId?' active':'')+'" onclick="navSwitch(\''+id+'\')"><i class="ti '+icon+'"></i>'+label+'</button>';
+  }).join('');
+  nav.classList.add('visible');
+}
+function renderHubContent(id){
+  if(id==='buyer-catalog') renderCatalog();
+  if(id==='buyer-orders') renderBuyerOrders();
+  if(id==='buyer-profil') renderBuyerProfil();
+  if(id==='buyer-home') renderBuyerHome();
+  if(id==='buyer-search') renderSearch();
+  if(id==='category-picker') renderCategoryGrid();
+  if(id==='buyer-favoris') renderFavoris();
+  if(id==='buyer-messages') renderBuyerThreads();
+  if(id==='shop-orders') renderShopOrders();
+  if(id==='shop-profil') renderShopProfil();
+  if(id==='shop-catalog') renderShopArticles();
+  if(id==='shop-gains') renderShopGains();
+  if(id==='shop-home') renderShopHome();
+  if(id==='shop-messages') renderShopThreads();
+}
+function navSwitch(id){
+  Object.keys(buyerHubs).concat(Object.keys(shopHubs)).forEach(sid=>{
+    const el = document.getElementById('screen-'+sid);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('screen-'+id).style.display = 'block';
+  animateIn(id);
+  currentScreen = id;
+  history_.length = 0;
+  document.getElementById('backBtn').style.display = 'none';
+  const title = (buyerHubs[id]||shopHubs[id])[1];
+  document.getElementById('screenTitle').textContent = title;
+  if(buyerHubs[id]) renderNav(buyerHubs, id); else renderNav(shopHubs, id);
+  renderHubContent(id);
+}
+function renderBuyerOrders(){
+  const buyerName = document.getElementById('b-nom').value.trim() || 'Acheteur';
+  const list = orders.filter(o=>o.buyer===buyerName);
+  document.getElementById('buyer-orders-list').innerHTML = list.length ? list.map(o=>
+    '<div class="card" style="margin-bottom:8px;">'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:500;">'+o.shop+'</span><span style="font-size:12px;color:'+statusColors[o.status]+';">'+statusLabels[o.status]+'</span></div>'+
+    '<p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px;">'+o.items.length+' article(s) · '+fmt(o.total)+(o.delai?' · délai '+o.delai+' j':' · délai à confirmer')+'</p>'+
+    '<button onclick="openThread(\''+buyerName+'\',\''+o.shop+'\')" style="width:100%;height:30px;font-size:12px;">Contacter la boutique</button></div>'
+  ).join('') : '<div class="empty-state"><i class="ti ti-package"></i><p>Aucune commande pour l\'instant.</p></div>';
+}
+function renderBuyerProfil(){
+  document.getElementById('bp-nom').textContent = document.getElementById('b-nom').value.trim() || '—';
+  document.getElementById('bp-email').textContent = document.getElementById('b-email').value.trim() || '—';
+  document.getElementById('bp-tel').textContent = document.getElementById('b-tel').value.trim() || '—';
+}
+function renderShopProfil(){
+  document.getElementById('sp-nom').textContent = document.getElementById('shop-nom').value.trim() || '—';
+  document.getElementById('sp-secteurs').textContent = shopSecteurs.join(', ') || '—';
+  document.getElementById('sp-boutique-demo').textContent = 'Boutique simulée : '+CURRENT_SHOP;
+}
+
+let favoris = {};
+function toggleFavori(id){
+  favoris[id] = !favoris[id];
+  renderSearch();
+  renderFavoris();
+}
+function renderBuyerHome(){
+  const nom = document.getElementById('b-nom').value.trim();
+  document.getElementById('bh-greeting').textContent = nom ? ('Bonjour '+nom) : 'Bonjour';
+  document.getElementById('bh-orders-count').textContent = orders.filter(o=>o.buyer===(nom||'Acheteur')).length;
+  document.getElementById('bh-fav-count').textContent = Object.values(favoris).filter(Boolean).length;
+}
+function articleCard(item){
+  const fav = !!favoris[item.id];
+  return '<div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;position:relative;">'+
+    '<button onclick="toggleFavori('+item.id+')" style="position:absolute;top:6px;right:6px;width:26px;height:26px;padding:0;border-radius:50%;background:rgba(255,255,255,0.85);border:none;z-index:1;"><i class="ti '+(fav?'ti-heart-filled':'ti-heart')+'" style="font-size:14px;color:'+(fav?'#A13A20':'var(--text-secondary)')+';"></i></button>'+
+    '<img src="'+item.img+'" alt="'+item.name+'" style="width:100%;height:80px;object-fit:cover;display:block;" />'+
+    '<div style="padding:8px 10px;">'+
+    '<p style="font-size:13px;font-weight:500;margin:0;">'+item.name+'</p>'+
+    '<p style="font-size:12px;color:var(--text-secondary);margin:2px 0;">'+fmt(item.price)+'</p>'+
+    '<p style="font-size:11px;color:var(--text-secondary);margin:0;">'+item.shop+' · '+item.delai+' j</p>'+
+    '</div></div>';
+}
+let selectedCategory = '';
+const furnitureCategories = [
+  {label:'Canapé', icon:'ti-sofa', cat:'Meubles'},
+  {label:'Salon', icon:'ti-armchair', cat:'Meubles'},
+  {label:'Coussin', icon:'ti-square', cat:'Textile'},
+  {label:'Lit', icon:'ti-bed', cat:'Meubles'},
+  {label:'Armoire', icon:'ti-archive', cat:'Meubles'},
+  {label:'Table', icon:'ti-table', cat:'Meubles'},
+  {label:'Lampadaire', icon:'ti-bulb', cat:'Éclairage'},
+  {label:'Rideaux', icon:'ti-window', cat:'Textile'},
+  {label:'Bureau', icon:'ti-device-desktop', cat:'Meubles'},
+  {label:'Tapis', icon:'ti-square-rounded', cat:'Textile'}
+];
+function renderCategoryGrid(){
+  document.getElementById('category-grid').innerHTML = furnitureCategories.map(c=>
+    '<button onclick="selectCategory(\''+c.cat+'\',\''+c.label+'\')" style="height:auto;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;background:transparent;border:none;color:var(--text-primary);"><i class="ti '+c.icon+'" style="font-size:28px;color:var(--text-primary);"></i><span style="font-size:13px;">'+c.label+'</span></button>'
+  ).join('') + '<button class="btn-secondary" onclick="selectCategory(\'\',\'Catégorie\')" style="grid-column:1/-1;height:40px;font-size:13px;margin-top:8px;">Toutes catégories</button>';
+}
+function selectCategory(cat,label){
+  selectedCategory = cat;
+  document.getElementById('search-cat-label').textContent = label;
+  goBack();
+  renderSearch();
+}
+function renderSearch(){
+  const q = (document.getElementById('search-shop').value||'').trim().toLowerCase();
+  const priceMax = parseInt(document.getElementById('search-price-max').value)||0;
+  const results = catalogItems.filter(i=>
+    (!q || i.shop.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)) &&
+    (!selectedCategory || i.cat===selectedCategory) &&
+    (!priceMax || i.price<=priceMax)
+  );
+  document.getElementById('search-results').innerHTML = results.length ? results.map(articleCard).join('') : '<div class="empty-state" style="grid-column:1/-1;"><i class="ti ti-search-off"></i><p>Aucun article ne correspond.</p></div>';
+}
+function renderFavoris(){
+  const results = catalogItems.filter(i=>favoris[i.id]);
+  document.getElementById('favoris-results').innerHTML = results.length ? results.map(articleCard).join('') : '<div class="empty-state" style="grid-column:1/-1;"><i class="ti ti-heart"></i><p>Aucun favori pour l\'instant.</p></div>';
+}
+
+let threads = {};
+let currentThread = null;
+function threadKey(buyer, shop){ return buyer+'|||'+shop; }
+function openThread(buyer, shop, backTo){
+  const key = threadKey(buyer, shop);
+  if(!threads[key]) threads[key] = [{from:'system', text:'Conversation démarrée avec '+shop}];
+  currentThread = {key, buyer, shop, backTo};
+  goTo('message-thread', shop===CURRENT_SHOP ? buyer : shop);
+  renderThread();
+}
+function renderThread(){
+  const msgs = threads[currentThread.key];
+  document.getElementById('thread-messages').innerHTML = msgs.map(m=>
+    '<div style="max-width:80%;margin-bottom:6px;'+(m.from==='me'?'margin-left:auto;text-align:right;':'')+'"><div style="display:inline-block;background:'+(m.from==='me'?'var(--wood)':'var(--surface-1)')+';color:'+(m.from==='me'?'#fff':'var(--text-primary)')+';padding:8px 10px;border-radius:10px;font-size:13px;">'+m.text+'</div></div>'
+  ).join('');
+}
+function sendThreadMessage(){
+  const input = document.getElementById('thread-input');
+  const val = input.value.trim();
+  if(!val) return;
+  threads[currentThread.key].push({from:'me', text:val});
+  input.value = '';
+  renderThread();
+}
+function renderBuyerThreads(){
+  const buyerName = document.getElementById('b-nom').value.trim() || 'Acheteur';
+  const shopsContacted = [...new Set(orders.filter(o=>o.buyer===buyerName).map(o=>o.shop))];
+  document.getElementById('buyer-threads-list').innerHTML = shopsContacted.length ? shopsContacted.map(shop=>
+    '<div class="card" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<span style="font-size:14px;font-weight:500;">'+shop+'</span>'+
+    '<button class="btn-secondary" onclick="openThread(\''+buyerName+'\',\''+shop+'\')" style="height:32px;font-size:12px;">Ouvrir</button></div>'
+  ).join('') : '<div class="empty-state"><i class="ti ti-message-off"></i><p>Contactez une boutique depuis une commande pour démarrer une conversation.</p></div>';
+}
+function renderShopThreads(){
+  const buyersContacted = [...new Set(shopOrders().map(o=>o.buyer))];
+  document.getElementById('shop-threads-list').innerHTML = buyersContacted.length ? buyersContacted.map(buyer=>
+    '<div class="card" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<span style="font-size:14px;font-weight:500;">'+buyer+'</span>'+
+    '<button class="btn-secondary" onclick="openThread(\''+buyer+'\',\''+CURRENT_SHOP+'\')" style="height:32px;font-size:12px;">Ouvrir</button></div>'
+  ).join('') : '<div class="empty-state"><i class="ti ti-message-off"></i><p>Aucun client n\'a encore commandé chez vous.</p></div>';
+}
+function renderShopGains(){
+  const list = shopOrders();
+  const total = list.reduce((s,o)=>s+o.net,0);
+  document.getElementById('gains-total').textContent = fmt(total);
+  document.getElementById('gains-livrees').textContent = list.filter(o=>o.status==='livree').length;
+  document.getElementById('gains-attente').textContent = list.filter(o=>o.status==='nouvelle'||o.status==='acceptee'||o.status==='expediee').length;
+}
+function renderShopHome(){
+  const nom = document.getElementById('shop-nom').value.trim();
+  document.getElementById('sh-greeting').textContent = nom ? ('Bonjour '+nom) : 'Bonjour';
+  const list = shopOrders();
+  document.getElementById('sh-gains').textContent = fmt(list.reduce((s,o)=>s+o.net,0));
+  document.getElementById('sh-orders-count').textContent = list.length;
+}
+
+function goTo(id, title){
+  history_.push(currentScreen);
+  document.getElementById('screen-'+currentScreen).style.display = 'none';
+  document.getElementById('screen-'+id).style.display = 'block';
+  animateIn(id);
+  currentScreen = id;
+  document.getElementById('screenTitle').textContent = title || '';
+  document.getElementById('backBtn').style.display = history_.length ? 'flex' : 'none';
+  if(buyerHubs[id]){ renderNav(buyerHubs, id); } else if(shopHubs[id]){ renderNav(shopHubs, id); } else { document.getElementById('bottomNav').classList.remove('visible'); }
+  if(id==='buyer-cart') renderCart();
+  renderHubContent(id);
+}
+function goBack(){
+  if(!history_.length) return;
+  const prev = history_.pop();
+  document.getElementById('screen-'+currentScreen).style.display = 'none';
+  document.getElementById('screen-'+prev).style.display = 'block';
+  animateIn(prev);
+  currentScreen = prev;
+  document.getElementById('backBtn').style.display = history_.length ? 'flex' : 'none';
+  if(buyerHubs[prev]){ renderNav(buyerHubs, prev); } else if(shopHubs[prev]){ renderNav(shopHubs, prev); } else { document.getElementById('bottomNav').classList.remove('visible'); }
+}
+function resetApp(){ location.reload(); }
+
+let demoCode = '';
+function buyerSendCode(){
+  const nom = document.getElementById('b-nom').value.trim();
+  const email = document.getElementById('b-email').value.trim();
+  const tel = document.getElementById('b-tel').value.trim();
+  const err = document.getElementById('b-err');
+  if(!nom || !email || !tel){ err.textContent = 'Remplissez tous les champs.'; err.style.display='block'; return; }
+  err.style.display='none';
+  demoCode = String(Math.floor(1000+Math.random()*9000));
+  document.getElementById('demo-code').textContent = demoCode;
+  goTo('buyer-code', 'Vérification');
+}
+function buyerValidateCode(){
+  const code = document.getElementById('b-code').value.trim();
+  const err = document.getElementById('code-err');
+  if(code !== demoCode){ err.textContent = 'Code incorrect.'; err.style.display='block'; return; }
+  err.style.display='none';
+  goTo('buyer-home', 'Home');
+}
+// === Intégration KIRI Engine via un serveur relais (scan par vidéo, sans LiDAR) ===
+// Le client (ce fichier) ne connaît JAMAIS la clé API KIRI Engine : il parle
+// uniquement à ton propre petit serveur relais, qui lui détient la clé et
+// fait la vraie requête à KIRI Engine. Voir kiri-relay-server/README.md.
+// Change cette URL par celle de ton serveur relais (localhost en test sur le
+// même ordinateur, ou l'URL publique/ngrok/déployée pour tester depuis un téléphone).
+const RELAY_BASE = 'http://localhost:3001';
+
+const kiriTargets = {
+  room: {
+    btn:'scanBtn', camera:'scanCamera', video:'scanVideoPreview', recordBtn:'scanRecordBtn',
+    uploading:'scanUploading', statusLabel:'scanStatusLabel', preview:'scanPreview',
+    downloadLink:'scanDownloadLink', error:'scanError', errorMsg:'scanErrorMsg',
+    isMask:'0', onDone:null
+  },
+  article: {
+    btn:'articleScanBtn', camera:'articleCamera', video:'articleVideoPreview', recordBtn:'articleRecordBtn',
+    uploading:'articleScanning', statusLabel:'articleScanLabel', preview:'articleScanPreview',
+    downloadLink:'articleDownloadLink', error:'articleScanError', errorMsg:'articleScanErrorMsg',
+    isMask:'1', onDone:function(){ articleScanned = true; }
+  }
+};
+const kiriDisplayVal = { btn:'flex', camera:'block', uploading:'flex', preview:'block', error:'block' };
+const kiriState = {};
+
+function kiriShow(t, which){
+  const cfg = kiriTargets[t];
+  Object.keys(kiriDisplayVal).forEach(k=>{
+    const el = document.getElementById(cfg[k]);
+    if(el) el.style.display = (k===which) ? kiriDisplayVal[k] : 'none';
+  });
+}
+
+async function kiriStartCamera(t){
+  const cfg = kiriTargets[t];
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
+    kiriState[t] = { stream: stream };
+    document.getElementById(cfg.video).srcObject = stream;
+    kiriShow(t, 'camera');
+  } catch(e){
+    document.getElementById(cfg.errorMsg).textContent = "Impossible d'accéder à la caméra (permission refusée, ou fichier ouvert hors navigateur/hors HTTPS).";
+    kiriShow(t, 'error');
+  }
+}
+
+function kiriToggleRecord(t){
+  const cfg = kiriTargets[t];
+  const st = kiriState[t];
+  const btn = document.getElementById(cfg.recordBtn);
+  if(!st.recorder || st.recorder.state === 'inactive'){
+    st.chunks = [];
+    st.recorder = new MediaRecorder(st.stream, { mimeType:'video/webm' });
+    st.recorder.ondataavailable = e => { if(e.data.size > 0) st.chunks.push(e.data); };
+    st.recorder.onstop = () => kiriHandleRecordingStop(t);
+    st.recorder.start();
+    btn.textContent = '■ Arrêter l\'enregistrement';
+  } else {
+    st.recorder.stop();
+    st.stream.getTracks().forEach(tr=>tr.stop());
+  }
+}
+
+async function kiriHandleRecordingStop(t){
+  const cfg = kiriTargets[t];
+  const st = kiriState[t];
+  const blob = new Blob(st.chunks, { type:'video/webm' });
+  kiriShow(t, 'uploading');
+  const label = document.getElementById(cfg.statusLabel);
+  label.textContent = 'Envoi de la vidéo…';
+  try{
+    const form = new FormData();
+    form.append('videoFile', blob, 'scan.webm');
+    form.append('isMask', cfg.isMask);
+    const res = await fetch(RELAY_BASE + '/api/scan/video', {
+      method:'POST',
+      body: form
+    });
+    const json = await res.json();
+    if(!res.ok || !json.ok) throw new Error(json.error || ('Erreur HTTP ' + res.status));
+    label.textContent = 'Modélisation en cours…';
+    await kiriPoll(t, json.serialize);
+  } catch(e){
+    document.getElementById(cfg.errorMsg).textContent = "Échec de l'envoi/traitement : " + e.message + ". Vérifie que le serveur relais tourne bien et que RELAY_BASE pointe dessus.";
+    kiriShow(t, 'error');
+  }
+}
+
+async function kiriPoll(t, serialize){
+  const cfg = kiriTargets[t];
+  const label = document.getElementById(cfg.statusLabel);
+  for(let i=0;i<40;i++){
+    await new Promise(r=>setTimeout(r, 4000));
+    const res = await fetch(RELAY_BASE + '/api/scan/status/' + serialize);
+    const json = await res.json();
+    const status = json.status;
+    if(status === 2){
+      const dl = await fetch(RELAY_BASE + '/api/scan/download/' + serialize);
+      const djson = await dl.json();
+      document.getElementById(cfg.downloadLink).href = djson.modelUrl;
+      kiriShow(t, 'preview');
+      if(cfg.onDone) cfg.onDone();
+      return;
+    }
+    if(status === 1) throw new Error('La modélisation a échoué côté KIRI Engine.');
+    if(status === 4) throw new Error('La tâche a expiré côté serveur.');
+    label.textContent = 'Modélisation en cours… ' + ((i+1)*4) + 's';
+  }
+  throw new Error('Délai dépassé en attendant le résultat.');
+}
+
+function kiriReset(t){
+  kiriShow(t, 'btn');
+  if(t === 'article'){ articleScanned = false; }
+}
+function buyerToBudget(){
+  const nom = document.getElementById('p-nom').value.trim();
+  const err = document.getElementById('proj-err');
+  if(!nom){ err.textContent = 'Entrez un nom de projet.'; err.style.display='block'; return; }
+  err.style.display='none';
+  goTo('buyer-budget', 'Budget');
+  buildBudgetRows();
+}
+function skipBudgetFromProject(){
+  const nom = document.getElementById('p-nom').value.trim();
+  const err = document.getElementById('proj-err');
+  if(!nom){ err.textContent = 'Entrez un nom de projet.'; err.style.display='block'; return; }
+  err.style.display='none';
+  buyerBudgetTotal = 0;
+  categoryBudget = {};
+  goTo('buyer-catalog', 'Catalogue');
+  renderCatalog();
+}
+function skipBudget(){
+  buyerBudgetTotal = 0;
+  categoryBudget = {};
+  goTo('buyer-catalog', 'Catalogue');
+  renderCatalog();
+}
+const categories = ['Meubles','Éclairage','Décoration murale','Textile'];
+function buildBudgetRows(){
+  let html='';
+  categories.forEach(c=>{
+    html += '<div style="margin-bottom:10px;"><label>'+c+'</label><input type="number" class="cat-amt" data-cat="'+c+'" oninput="updateBudgetSummary()" style="margin-top:4px;" placeholder="Montant en FCFA" /></div>';
+  });
+  document.getElementById('budget-split').innerHTML = html;
+  updateBudgetSummary();
+}
+function updateBudgetSummary(){
+  const total = parseInt(document.getElementById('budget-total').value)||0;
+  let sum = 0;
+  document.querySelectorAll('.cat-amt').forEach(el=>{ sum += parseInt(el.value)||0; });
+  const err = document.getElementById('budget-err');
+  if(total>0 && sum>total){
+    err.textContent = 'Attention, la répartition dépasse votre budget total de '+fmt(sum-total)+'.';
+    err.style.display='block';
+  } else {
+    err.style.display='none';
+  }
+}
+let buyerBudgetTotal = 0;
+let categoryBudget = {};
+function buyerToCatalog(){
+  const total = parseInt(document.getElementById('budget-total').value)||0;
+  if(!total){ const err=document.getElementById('budget-err'); err.textContent='Entrez un budget total.'; err.style.display='block'; return; }
+  buyerBudgetTotal = total;
+  document.querySelectorAll('.cat-amt').forEach(el=>{ categoryBudget[el.dataset.cat] = parseInt(el.value)||0; });
+  goTo('buyer-catalog', 'Catalogue');
+  renderCatalog();
+}
+function ph(color,label){
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="100%" height="100%" fill="'+color+'"/><text x="50%" y="50%" fill="#ffffff" font-size="20" text-anchor="middle" dominant-baseline="middle" font-family="Inter, sans-serif">'+label+'</text></svg>';
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+const catalogItems = [
+  {id:1,name:'Canapé 3 places',cat:'Meubles',price:250000,shop:'Sénéco',delai:7,img:ph('#A9926F','Canape')},
+  {id:2,name:'Table basse',cat:'Meubles',price:120000,shop:'Sénéco',delai:5,img:ph('#3C3428','Table basse')},
+  {id:3,name:'Lampadaire design',cat:'Éclairage',price:45000,shop:'Sénéco',delai:3,img:ph('#5F6F5A','Lampadaire')},
+  {id:4,name:'Applique murale',cat:'Éclairage',price:22000,shop:'Sénéco',delai:3,img:ph('#5F6F5A','Applique')},
+  {id:5,name:'Tableau décoratif',cat:'Décoration murale',price:30000,shop:'Terranga',delai:4,img:ph('#A9926F','Tableau')},
+  {id:6,name:'Miroir mural',cat:'Décoration murale',price:38000,shop:'Terranga',delai:4,img:ph('#3C3428','Miroir')},
+  {id:7,name:'Tapis salon',cat:'Textile',price:60000,shop:'Terranga',delai:6,img:ph('#A9926F','Tapis')},
+  {id:8,name:'Coussins (lot de 4)',cat:'Textile',price:25000,shop:'Terranga',delai:2,img:ph('#5F6F5A','Coussins')},
+];
+let orders = [];
+let CURRENT_SHOP = 'Sénéco';
+let currentOrderId = null;
+let cart = [];
+function catSpent(cat){ return cart.filter(i=>i.cat===cat).reduce((s,i)=>s+i.price,0); }
+function renderCatalog(){
+  const spentTotal = cart.reduce((s,i)=>s+i.price,0);
+  const remainingTotal = buyerBudgetTotal - spentTotal;
+  const remBox = document.getElementById('cat-remaining');
+  if(buyerBudgetTotal>0){
+    remBox.textContent = fmt(remainingTotal);
+    remBox.style.color = remainingTotal<0 ? 'var(--text-danger)' : 'var(--text-accent)';
+  } else {
+    remBox.textContent = 'Aucun budget défini';
+    remBox.style.color = 'var(--text-secondary)';
+  }
+  let html='';
+  categories.forEach(cat=>{
+    const suggested = categoryBudget[cat]||0;
+    const spentCat = catSpent(cat);
+    const label = suggested>0 ? (cat+' — suggéré '+fmt(suggested)+', dépensé '+fmt(spentCat)) : cat;
+    html += '<p style="font-size:13px;font-weight:600;margin:14px 0 8px;">'+label+'</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:6px;">';
+    catalogItems.filter(i=>i.cat===cat).forEach(item=>{
+      const overBudget = buyerBudgetTotal>0 && item.price > remainingTotal;
+      html += '<div style="background:var(--surface-2);border:0.5px solid '+(overBudget?'var(--border-warning,#E8C98F)':'var(--border)')+';border-radius:12px;overflow:hidden;">'+
+        '<img src="'+item.img+'" alt="'+item.name+'" style="width:100%;height:80px;object-fit:cover;display:block;" />'+
+        '<div style="padding:8px 10px;">'+
+        '<p style="font-size:13px;font-weight:500;margin:0;">'+item.name+'</p>'+
+        '<p style="font-size:12px;color:'+(overBudget?'var(--text-danger)':'var(--text-secondary)')+';margin:2px 0;">'+fmt(item.price)+'</p>'+
+        '<p style="font-size:11px;color:var(--text-secondary);margin:0 0 6px;">'+item.shop+' · '+item.delai+' j'+(overBudget?' · dépasse le budget':'')+'</p>'+
+        '<button onclick="addToCart('+item.id+')" style="width:100%;height:28px;font-size:12px;">Ajouter</button>'+
+        '</div></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('catalog-list').innerHTML = html;
+  document.getElementById('cart-count').textContent = cart.length;
+}
+function addToCart(id){
+  const item = catalogItems.find(i=>i.id===id);
+  cart.push(item);
+  renderCatalog();
+}
+function renderCart(){
+  let html = cart.length ? '' : '<p style="font-size:13px;color:var(--text-secondary);">Panier vide.</p>';
+  cart.forEach((item,idx)=>{
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;"><span style="font-size:14px;">'+item.name+'</span><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;color:var(--text-secondary);">'+fmt(item.price)+'</span><button onclick="removeFromCart('+idx+')" style="width:28px;height:28px;padding:0;" aria-label="Retirer"><i class="ti ti-x" style="font-size:14px;"></i></button></div></div>';
+  });
+  document.getElementById('cart-list').innerHTML = html;
+  const total = cart.reduce((s,i)=>s+i.price,0);
+  document.getElementById('cart-total').textContent = fmt(total);
+  const note = document.getElementById('cart-budget-note');
+  const diff = buyerBudgetTotal - total;
+  if(buyerBudgetTotal>0){
+    note.style.display='block';
+    if(diff<0){ note.textContent = 'Ce panier dépasse votre budget de '+fmt(-diff)+'.'; note.style.color='var(--text-danger)'; }
+    else { note.textContent = 'Il vous reste '+fmt(diff)+' sur votre budget.'; note.style.color='var(--text-secondary)'; }
+  } else { note.style.display='none'; }
+}
+function removeFromCart(idx){ cart.splice(idx,1); renderCart(); }
+function goToPayment(){
+  if(!cart.length){ const e=document.getElementById('cart-err'); e.textContent='Ajoutez au moins un article.'; e.style.display='block'; return; }
+  document.getElementById('pay-amount').textContent = fmt(cart.reduce((s,i)=>s+i.price,0));
+  document.getElementById('pay-form').style.display='block';
+  document.getElementById('pay-confirm').style.display='none';
+  document.getElementById('pay-done').style.display='none';
+  goTo('buyer-payment', 'Paiement');
+}
+function doPay(){
+  document.getElementById('pay-form').style.display='none';
+  document.getElementById('pay-confirm').style.display='block';
+}
+function finalizeOrder(){
+  const buyerName = document.getElementById('b-nom').value.trim() || 'Acheteur';
+  const byShop = {};
+  cart.forEach(item=>{ (byShop[item.shop] = byShop[item.shop]||[]).push(item); });
+  Object.keys(byShop).forEach(shop=>{
+    const items = byShop[shop];
+    const total = items.reduce((s,i)=>s+i.price,0);
+    orders.push({ id: Date.now()+Math.random(), shop, buyer: buyerName, items, total, net: Math.round(total*0.935), status:'nouvelle', delai:null, motif:'' });
+  });
+  document.getElementById('pay-confirm').style.display='none';
+  document.getElementById('pay-done').style.display='block';
+}
+
+function shopSignup(){
+  const nom = document.getElementById('s-nom').value.trim();
+  const tel = document.getElementById('s-tel').value.trim();
+  const mail = document.getElementById('s-mail').value.trim();
+  const err = document.getElementById('s-err');
+  if(!nom||!tel||!mail){ err.textContent='Remplissez tous les champs.'; err.style.display='block'; return; }
+  err.style.display='none';
+  goTo('shop-payment', 'Abonnement');
+}
+let shopSecteurs = [];
+function shopToCatalog(){
+  const nom = document.getElementById('shop-nom').value.trim();
+  const err = document.getElementById('shop-setup-err');
+  shopSecteurs = Array.from(document.querySelectorAll('.shop-secteur-check:checked')).map(el=>el.value);
+  if(!nom){ err.textContent='Entrez le nom de la boutique.'; err.style.display='block'; return; }
+  if(!shopSecteurs.length){ err.textContent='Sélectionnez au moins un secteur.'; err.style.display='block'; return; }
+  err.style.display='none';
+  CURRENT_SHOP = document.getElementById('shop-demo-select').value;
+  goTo('shop-home', 'Home');
+}
+let shopArticles = [];
+let articleScanned = false;
+function addArticle(){
+  const nom = document.getElementById('a-nom').value.trim();
+  const dim = document.getElementById('a-dim').value.trim();
+  const prix = parseInt(document.getElementById('a-prix').value)||0;
+  const delai = parseInt(document.getElementById('a-delai').value)||0;
+  const err = document.getElementById('art-err');
+  if(!nom||!dim||!prix||!delai){ err.textContent='Remplissez nom, dimension, prix et délai.'; err.style.display='block'; return; }
+  if(!articleScanned){ err.textContent='Scannez le produit avant de l\'ajouter.'; err.style.display='block'; return; }
+  if(shopArticles.length>=100){ err.textContent='Limite de 100 articles atteinte.'; err.style.display='block'; return; }
+  err.style.display='none';
+  shopArticles.push({nom,dim,prix,delai,dispo:true});
+  document.getElementById('a-nom').value='';
+  document.getElementById('a-dim').value='';
+  document.getElementById('a-prix').value='';
+  document.getElementById('a-delai').value='';
+  document.getElementById('articleScanPreview').style.display='none';
+  kiriReset('article');
+  document.getElementById('shop-finish-msg').style.display='none';
+  renderShopArticles();
+}
+function toggleDispo(idx){ shopArticles[idx].dispo = !shopArticles[idx].dispo; renderShopArticles(); }
+function renderShopArticles(){
+  document.getElementById('shop-count').textContent = shopArticles.length+' / 100';
+  const demoItems = catalogItems.filter(i=>i.shop===CURRENT_SHOP);
+  const top = demoItems.length ? demoItems.reduce((a,b)=>a.price>b.price?a:b) : null;
+  document.getElementById('shop-top-article').textContent = top ? top.name : (shopArticles[0] ? shopArticles[0].nom : '—');
+  document.getElementById('shop-interactions').textContent = [...new Set(shopOrders().map(o=>o.buyer))].length;
+  let html='';
+  shopArticles.forEach((a,idx)=>{
+    html += '<div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">'+
+      '<div style="height:90px;background:var(--surface-1);display:flex;align-items:center;justify-content:center;"><i class="ti ti-cube" style="font-size:26px;color:var(--text-secondary);"></i></div>'+
+      '<div style="padding:8px 10px;">'+
+      '<p style="font-size:13px;font-weight:500;margin:0;">'+a.nom+'</p>'+
+      '<p style="font-size:12px;color:var(--text-secondary);margin:2px 0;">'+fmt(a.prix)+'</p>'+
+      '<p style="font-size:11px;color:var(--text-secondary);margin:0 0 6px;">'+a.dim+' · '+a.delai+' j</p>'+
+      '<button class="'+(a.dispo?'':'btn-danger')+'" onclick="toggleDispo('+idx+')" style="width:100%;height:28px;font-size:11px;">'+(a.dispo?'Disponible':'Épuisé')+'</button>'+
+      '</div></div>';
+  });
+  document.getElementById('shop-articles').innerHTML = html || '<div class="empty-state" style="grid-column:1/-1;"><i class="ti ti-box-off"></i><p>Aucun article pour le moment.</p></div>';
+}
+function finishCatalogForNow(){
+  const msg = document.getElementById('shop-finish-msg');
+  msg.textContent = 'Catalogue enregistré (' + shopArticles.length + " article(s)). Revenez ici quand vous voulez pour en ajouter d'autres.";
+  msg.style.display='block';
+}
+
+const statusLabels = {nouvelle:'Nouvelle',acceptee:'Acceptée',expediee:'Expédiée',livree:'Livrée',refusee:'Refusée'};
+const statusColors = {nouvelle:'var(--text-accent)',acceptee:'var(--sage)',expediee:'var(--text-accent)',livree:'var(--text-success)',refusee:'var(--text-danger)'};
+function shopOrders(){ return orders.filter(o=>o.shop===CURRENT_SHOP); }
+function renderShopOrders(){
+  const list = shopOrders();
+  document.getElementById('shop-orders-list').innerHTML = list.length ? list.map(o=>
+    '<div style="padding:12px;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:14px;font-weight:600;">'+o.buyer+'</span><span style="font-size:12px;color:'+statusColors[o.status]+';">'+statusLabels[o.status]+'</span></div>'+
+    '<p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px;">'+o.items.length+' article(s) · '+fmt(o.total)+' · net '+fmt(o.net)+'</p>'+
+    '<button class="btn-secondary" onclick="viewOrder(\''+o.id+'\')" style="width:100%;height:34px;font-size:13px;">Voir le détail</button></div>'
+  ).join('') : '<div class="empty-state"><i class="ti ti-package-off"></i><p>Aucune commande pour l\'instant.</p></div>';
+}
+function viewOrder(id){
+  currentOrderId = id;
+  goTo('shop-order-detail','Détail commande');
+  renderOrderDetail();
+}
+function renderOrderDetail(){
+  const o = orders.find(x=>String(x.id)===String(currentOrderId));
+  if(!o) return;
+  let itemsHtml = o.items.map(i=>'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px;"><span>'+i.name+'</span><span>'+fmt(i.price)+'</span></div>').join('');
+  let actions = '';
+  if(o.status==='nouvelle'){
+    const suggestedDelay = Math.max(...o.items.map(i=>i.delai||5));
+    actions = '<div style="margin-top:14px;">'+
+      '<label>Délai de livraison (jours) — issu du catalogue</label><input id="order-delay" type="number" value="'+suggestedDelay+'" style="margin:4px 0 8px;" />'+
+      '<button onclick="acceptOrder()" style="width:100%;height:40px;margin-bottom:8px;">Accepter la commande</button>'+
+      '<label>Motif de refus (si refus)</label><input id="order-motif" style="margin:4px 0 8px;" placeholder="Rupture de stock" />'+
+      '<button class="btn-danger" onclick="refuseOrder()" style="width:100%;height:40px;">Refuser la commande</button>'+
+      '<p id="order-err" style="font-size:13px;color:var(--text-danger);display:none;margin:8px 0 0;"></p></div>';
+  } else if(o.status==='acceptee'){
+    actions = '<p style="font-size:13px;color:var(--text-secondary);margin:14px 0 8px;">Livraison annoncée sous '+o.delai+' jour(s).</p><button onclick="advanceOrder(\'expediee\')" style="width:100%;height:40px;">Marquer comme expédiée</button>';
+  } else if(o.status==='expediee'){
+    actions = '<button onclick="advanceOrder(\'livree\')" style="width:100%;height:40px;margin-top:14px;">Marquer comme livrée</button>';
+  } else if(o.status==='refusee'){
+    actions = '<p style="font-size:13px;color:var(--text-danger);margin:14px 0 0;">Refusée — motif : '+o.motif+'</p>';
+  } else if(o.status==='livree'){
+    actions = '<p style="font-size:13px;color:var(--text-success);margin:14px 0 0;">Commande livrée.</p>';
+  }
+  document.getElementById('order-detail-body').innerHTML =
+    '<p style="font-size:14px;font-weight:600;margin:0 0 4px;">'+o.buyer+'</p>'+
+    '<p style="font-size:12px;color:'+statusColors[o.status]+';margin:0 0 10px;">'+statusLabels[o.status]+'</p>'+
+    '<button onclick="openThread(\''+o.buyer+'\',\''+o.shop+'\')" style="width:100%;height:32px;font-size:12px;margin-bottom:12px;">Contacter l\'acheteur</button>'+
+    itemsHtml+
+    '<div style="display:flex;justify-content:space-between;margin:12px 0 4px;font-size:14px;font-weight:600;"><span>Total</span><span>'+fmt(o.total)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);"><span>Net après commission</span><span>'+fmt(o.net)+'</span></div>'+
+    actions;
+}
+function acceptOrder(){
+  const days = document.getElementById('order-delay').value;
+  const err = document.getElementById('order-err');
+  if(!days){ err.textContent='Entrez un délai de livraison.'; err.style.display='block'; return; }
+  const o = orders.find(x=>String(x.id)===String(currentOrderId));
+  o.status='acceptee'; o.delai=days;
+  renderOrderDetail();
+}
+function refuseOrder(){
+  const motif = document.getElementById('order-motif').value.trim();
+  const err = document.getElementById('order-err');
+  if(!motif){ err.textContent='Indiquez un motif de refus.'; err.style.display='block'; return; }
+  const o = orders.find(x=>String(x.id)===String(currentOrderId));
+  o.status='refusee'; o.motif=motif;
+  renderOrderDetail();
+}
+function advanceOrder(status){
+  const o = orders.find(x=>String(x.id)===String(currentOrderId));
+  o.status=status;
+  renderOrderDetail();
+}
+renderMoodSwatches('sable');
+</script>
+</body>
+</html>
