@@ -6,24 +6,20 @@ const cors = require('cors');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
-// En prototype/tests, on autorise toutes les origines pour simplifier
-// (ouverture du fichier HTML en local, tests depuis un téléphone, etc.).
-// En production, restreins ceci au(x) domaine(s) réel(s) de l'application.
 app.use(cors());
+app.use(express.static(__dirname));
 
 const KIRI_API_KEY = process.env.KIRI_API_KEY;
 const KIRI_BASE = 'https://api.kiriengine.app/api/v1/open';
 
 if (!KIRI_API_KEY) {
-  console.warn('⚠️  KIRI_API_KEY manquant. Crée un fichier .env (voir .env.example) avec ta clé KIRI Engine.');
+  console.warn('⚠️  KIRI_API_KEY manquant.');
 }
 
-// Petite vérification de vie du serveur
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, kiriConfigured: !!KIRI_API_KEY });
 });
 
-// 1) Upload d'une vidéo de scan (pièce ou produit) → crée une tâche KIRI Engine
 app.post('/api/scan/video', upload.single('videoFile'), async (req, res) => {
   try {
     if (!KIRI_API_KEY) {
@@ -58,7 +54,6 @@ app.post('/api/scan/video', upload.single('videoFile'), async (req, res) => {
   }
 });
 
-// 2) Statut d'une tâche de modélisation en cours
 app.get('/api/scan/status/:serialize', async (req, res) => {
   try {
     if (!KIRI_API_KEY) return res.status(500).json({ ok: false, error: 'Clé API non configurée.' });
@@ -73,7 +68,6 @@ app.get('/api/scan/status/:serialize', async (req, res) => {
   }
 });
 
-// 3) Lien de téléchargement du modèle une fois terminé
 app.get('/api/scan/download/:serialize', async (req, res) => {
   try {
     if (!KIRI_API_KEY) return res.status(500).json({ ok: false, error: 'Clé API non configurée.' });
