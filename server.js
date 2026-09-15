@@ -6,20 +6,25 @@ const cors = require('cors');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
+// En prototype/tests, on autorise toutes les origines pour simplifier
+// (ouverture du fichier HTML en local, tests depuis un téléphone, etc.).
+// En production, restreins ceci au(x) domaine(s) réel(s) de l'application.
 app.use(cors());
-app.use(express.static(__dirname));
 
 const KIRI_API_KEY = process.env.KIRI_API_KEY;
 const KIRI_BASE = 'https://api.kiriengine.app/api/v1/open';
 
 if (!KIRI_API_KEY) {
-  console.warn('⚠️  KIRI_API_KEY manquant.');
+  console.warn('⚠️  KIRI_API_KEY manquant. Crée un fichier .env (voir .env.example) avec ta clé KIRI Engine.');
 }
 
+// Petite vérification de vie du serveur
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, kiriConfigured: !!KIRI_API_KEY });
 });
 
+// 1) Upload d'une vidéo de scan (pièce ou produit) → crée une tâche KIRI Engine
+// 1) Upload d'une vidéo de scan (pièce ou produit) → crée une tâche KIRI Engine
 app.post('/api/scan/video', upload.single('videoFile'), async (req, res) => {
   try {
     if (!KIRI_API_KEY) {
@@ -32,8 +37,8 @@ app.post('/api/scan/video', upload.single('videoFile'), async (req, res) => {
 
     const form = new FormData();
     form.append('videoFile', new Blob([req.file.buffer]), req.file.originalname || 'scan.webm');
-    form.append('modelQuality', '1');
-    form.append('textureQuality', '1');
+    form.append('modelQuality', '0');
+    form.append('textureQuality', '0');
     form.append('fileFormat', 'GLB');
     form.append('isMask', isMask);
     form.append('textureSmoothing', '1');
@@ -54,6 +59,44 @@ app.post('/api/scan/video', upload.single('videoFile'), async (req, res) => {
   }
 });
 
+// 1bis) Upload de plusieurs photos de scan (pièce ou produit) → crée une tâche KIRI Engine
+app.post('/api/scan/photos', upload.array('images', 300), async (req, res) => {
+  try {
+    if (!KIRI_API_KEY) {
+      return res.status(500).json({ ok: false, error: 'Clé API KIRI Engine non configurée sur le serveur.' });
+    }
+    if (!req.files || req.files.length < 20) {
+      return res.status(400).json({ ok: false, error: `Il faut au moins 20 photos (reçu : ${req.files ? req.files.length : 0}).` });
+    }
+    const isMask = req.body.isMask === '1' ? '1' : '0';
+
+    const form = new FormData();
+    req.files.forEach((f, i) => {
+      form.append('imagesFiles', new Blob([f.buffer]), f.originalname || `photo${i}.jpg`);
+    });
+    form.append('modelQuality', '0');
+    form.append('textureQuality', '0');
+    form.append('fileFormat', 'GLB');
+    form.append('isMask', isMask);
+    form.append('textureSmoothing', '1');
+
+    const kiriRes = await fetch(`${KIRI_BASE}/photo/image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${KIRI_API_KEY}` },
+      body: form
+    });
+    const json = await kiriRes.json();
+    if (!kiriRes.ok || !json.ok) {
+      return res.status(502).json({ ok: false, error: json.msg || `Erreur KIRI Engine (${kiriRes.status})` });
+    }
+    res.json({ ok: true, serialize: json.data.serialize });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: 'Erreur serveur relais.' });
+  }
+});
+
+// 2) Statut d'une tâche de modélisation en cours
 app.get('/api/scan/status/:serialize', async (req, res) => {
   try {
     if (!KIRI_API_KEY) return res.status(500).json({ ok: false, error: 'Clé API non configurée.' });
@@ -68,6 +111,7 @@ app.get('/api/scan/status/:serialize', async (req, res) => {
   }
 });
 
+// 3) Lien de téléchargement du modèle une fois terminé
 app.get('/api/scan/download/:serialize', async (req, res) => {
   try {
     if (!KIRI_API_KEY) return res.status(500).json({ ok: false, error: 'Clé API non configurée.' });
