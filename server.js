@@ -10,6 +10,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200
 // (ouverture du fichier HTML en local, tests depuis un téléphone, etc.).
 // En production, restreins ceci au(x) domaine(s) réel(s) de l'application.
 app.use(cors());
+app.use(express.static(__dirname));
 
 const KIRI_API_KEY = process.env.KIRI_API_KEY;
 const KIRI_BASE = 'https://api.kiriengine.app/api/v1/open';
