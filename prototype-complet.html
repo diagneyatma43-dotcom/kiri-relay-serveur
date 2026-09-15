@@ -574,8 +574,12 @@
 
   <div id="scanCamera" style="display:none;margin-bottom:10px;">
     <video id="scanVideoPreview" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:170px;object-fit:cover;display:block;"></video>
-    <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Filmez lentement en tournant dans la pièce (~20-30 s), puis arrêtez.</p>
-    <button id="scanRecordBtn" onclick="kiriToggleRecord('room')" style="width:100%;height:40px;">● Démarrer l'enregistrement</button>
+    <canvas id="scanCanvas" style="display:none;"></canvas>
+    <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Prends au moins 20 photos, sous tous les angles, en tournant lentement.</p>
+    <div style="display:flex;gap:8px;">
+      <button id="scanCaptureBtn" onclick="kiriCapturePhoto('room')" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-camera" style="font-size:15px;"></i>Capturer (<span id="scanPhotoCount">0</span>)</button>
+      <button class="btn-secondary" onclick="kiriFinishCapture('room')" style="flex:1;height:40px;">Terminer</button>
+    </div>
   </div>
 
   <div id="scanUploading" class="scan-frame" style="display:none;">
@@ -710,8 +714,12 @@
     <button id="articleScanBtn" onclick="kiriStartCamera('article')" style="width:100%;height:40px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-scan" style="font-size:16px;"></i>Scanner le produit</button>
     <div id="articleCamera" style="display:none;margin-bottom:8px;">
       <video id="articleVideoPreview" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:150px;object-fit:cover;display:block;"></video>
-      <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Filmez l'article sous tous les angles (~15-20 s).</p>
-      <button id="articleRecordBtn" onclick="kiriToggleRecord('article')" style="width:100%;height:36px;">● Démarrer l'enregistrement</button>
+      <canvas id="articleCanvas" style="display:none;"></canvas>
+      <p style="font-size:11px;color:var(--text-secondary);margin:6px 0;">Prends au moins 20 photos de l'article, sous tous les angles.</p>
+      <div style="display:flex;gap:8px;">
+        <button id="articleCaptureBtn" onclick="kiriCapturePhoto('article')" style="flex:1;height:36px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;"><i class="ti ti-camera" style="font-size:14px;"></i>Capturer (<span id="articlePhotoCount">0</span>)</button>
+        <button class="btn-secondary" onclick="kiriFinishCapture('article')" style="flex:1;height:36px;font-size:12.5px;">Terminer</button>
+      </div>
     </div>
     <div id="articleScanning" class="scan-frame compact" style="display:none;margin-bottom:8px;">
       <div class="scan-line"></div>
@@ -1194,13 +1202,13 @@ const RELAY_BASE = 'https://kiri-relay-serveur.onrender.com';
 
 const kiriTargets = {
   room: {
-    btn:'scanBtn', camera:'scanCamera', video:'scanVideoPreview', recordBtn:'scanRecordBtn',
+    btn:'scanBtn', camera:'scanCamera', video:'scanVideoPreview', canvas:'scanCanvas', captureBtn:'scanCaptureBtn', countEl:'scanPhotoCount',
     uploading:'scanUploading', statusLabel:'scanStatusLabel', preview:'scanPreview',
     downloadLink:'scanDownloadLink', error:'scanError', errorMsg:'scanErrorMsg',
     isMask:'0', onDone:null
   },
   article: {
-    btn:'articleScanBtn', camera:'articleCamera', video:'articleVideoPreview', recordBtn:'articleRecordBtn',
+    btn:'articleScanBtn', camera:'articleCamera', video:'articleVideoPreview', canvas:'articleCanvas', captureBtn:'articleCaptureBtn', countEl:'articlePhotoCount',
     uploading:'articleScanning', statusLabel:'articleScanLabel', preview:'articleScanPreview',
     downloadLink:'articleDownloadLink', error:'articleScanError', errorMsg:'articleScanErrorMsg',
     isMask:'1', onDone:function(){ articleScanned = true; }
@@ -1208,6 +1216,7 @@ const kiriTargets = {
 };
 const kiriDisplayVal = { btn:'flex', camera:'block', uploading:'flex', preview:'block', error:'block' };
 const kiriState = {};
+const KIRI_MIN_PHOTOS = 20;
 
 function kiriShow(t, which){
   const cfg = kiriTargets[t];
@@ -1221,8 +1230,9 @@ async function kiriStartCamera(t){
   const cfg = kiriTargets[t];
   try{
     const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
-    kiriState[t] = { stream: stream };
+    kiriState[t] = { stream: stream, photos: [] };
     document.getElementById(cfg.video).srcObject = stream;
+    document.getElementById(cfg.countEl).textContent = '0';
     kiriShow(t, 'camera');
   } catch(e){
     document.getElementById(cfg.errorMsg).textContent = "Impossible d'accéder à la caméra (permission refusée, ou fichier ouvert hors navigateur/hors HTTPS).";
@@ -1230,55 +1240,46 @@ async function kiriStartCamera(t){
   }
 }
 
-function pickSupportedMimeType(){
-  const candidates = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-  for(const c of candidates){
-    if(window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c)) return c;
-  }
-  return '';
-}
-
-function kiriToggleRecord(t){
+function kiriCapturePhoto(t){
   const cfg = kiriTargets[t];
   const st = kiriState[t];
-  const btn = document.getElementById(cfg.recordBtn);
-  if(!st.recorder || st.recorder.state === 'inactive'){
-    st.chunks = [];
-    const mime = pickSupportedMimeType();
-    st.mime = mime || '';
-    try{
-      st.recorder = mime ? new MediaRecorder(st.stream, { mimeType: mime }) : new MediaRecorder(st.stream);
-    } catch(e){
-      st.recorder = new MediaRecorder(st.stream);
-      st.mime = '';
+  const video = document.getElementById(cfg.video);
+  const canvas = document.getElementById(cfg.canvas);
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    if(blob){
+      st.photos.push(blob);
+      document.getElementById(cfg.countEl).textContent = String(st.photos.length);
     }
-    st.recorder.ondataavailable = e => { if(e.data.size > 0) st.chunks.push(e.data); };
-    st.recorder.onstop = () => kiriHandleRecordingStop(t);
-    st.recorder.start();
-    btn.textContent = '■ Arrêter l\'enregistrement';
-  } else {
-    st.recorder.stop();
-    st.stream.getTracks().forEach(tr=>tr.stop());
-  }
+  }, 'image/jpeg', 0.92);
 }
 
-async function kiriHandleRecordingStop(t){
+function kiriFinishCapture(t){
   const cfg = kiriTargets[t];
   const st = kiriState[t];
-  const mimeUsed = st.mime || st.recorder.mimeType || 'video/mp4';
-  const isMp4 = mimeUsed.indexOf('mp4') !== -1;
-  const blob = new Blob(st.chunks, { type: mimeUsed });
+  if(st.photos.length < KIRI_MIN_PHOTOS){
+    document.getElementById(cfg.errorMsg).textContent = 'Il faut au moins ' + KIRI_MIN_PHOTOS + ' photos (tu en as ' + st.photos.length + '). Continue à capturer sous différents angles.';
+    kiriShow(t, 'error');
+    return;
+  }
+  st.stream.getTracks().forEach(tr=>tr.stop());
+  kiriUploadPhotos(t);
+}
+
+async function kiriUploadPhotos(t){
+  const cfg = kiriTargets[t];
+  const st = kiriState[t];
   kiriShow(t, 'uploading');
   const label = document.getElementById(cfg.statusLabel);
-  label.textContent = 'Envoi de la vidéo…';
+  label.textContent = 'Envoi de ' + st.photos.length + ' photos…';
   try{
-    if(blob.size === 0){
-      throw new Error('La vidéo enregistrée est vide (0 octet) — réessaie en filmant un peu plus longtemps.');
-    }
     const form = new FormData();
-    form.append('videoFile', blob, isMp4 ? 'scan.mp4' : 'scan.webm');
+    st.photos.forEach((blob, i) => form.append('images', blob, 'photo' + i + '.jpg'));
     form.append('isMask', cfg.isMask);
-    const res = await fetch(RELAY_BASE + '/api/scan/video', {
+    const res = await fetch(RELAY_BASE + '/api/scan/photos', {
       method:'POST',
       body: form
     });
